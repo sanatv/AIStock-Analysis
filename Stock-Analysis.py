@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 st.set_page_config(page_title="Financial Analysis", layout="wide")
 
 # 1. Secrets
-OPENAI_ORG = st.secrets.get("openai_org") or os.getenv("OPENAI_ORG")
+#OPENAI_ORG = st.secrets.get("openai_org") or os.getenv("OPENAI_ORG")
 OPENAI_KEY = st.secrets.get("openai_key") or os.getenv("OPENAI_KEY")
 if not OPENAI_KEY:
     st.error("🔒 Please configure your OpenAI API key in Streamlit secrets or env var.")
