@@ -39,23 +39,39 @@ def get_income_statement(ticker: str) -> pd.DataFrame:
 # 4. Download and parse SEC filings with caching
 @st.cache_data(show_spinner=False)
 def download_and_parse_filings(ticker: str) -> tuple[str, str]:
-    # Use explicit download path to align with base_dir
+    """Download and parse latest 10-K and 10-Q filings."""
     dl = Downloader("Vats Inc", "sanatv@gmail.com")
+    dl.get("10-K", ticker, limit=1)
+    dl.get("10-Q", ticker, limit=1)
+
     filing_texts: dict[str, str] = {}
-    base_dir = os.path.join("sec-edgar-filings", ticker)
+    # Determine download base paths
+    paths = [
+        os.path.join("sec-edgar-filings", ticker),  # custom path
+        os.path.join(os.getcwd(), ticker)            # default path
+    ]
+
     for name, ftype in [("10-K", "10-K"), ("10-Q", "10-Q")]:
-        try:
-            dl.get(ftype, ticker, limit=1)
-            filing_dir = os.path.join(base_dir, ftype)
-            latest = sorted(os.listdir(filing_dir), reverse=True)[0]
-            path = os.path.join(filing_dir, latest, "full-submission.txt")
-            with open(path, 'r', encoding='utf-8') as f:
-                soup = BeautifulSoup(f.read(), 'lxml')
-                text = soup.get_text(separator='\n')
-                filing_texts[name] = text[:15000]
-        except Exception:
-            filing_texts[name] = f"No {name} filing found or error parsing."
+        parsed = False
+        for base in paths:
+            filing_dir = os.path.join(base, ftype)
+            if os.path.isdir(filing_dir):
+                try:
+                    latest = sorted(os.listdir(filing_dir), reverse=True)[0]
+                    file_path = os.path.join(filing_dir, latest, "full-submission.txt")
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        soup = BeautifulSoup(f.read(), 'lxml')
+                        text = soup.get_text(separator='')
+                        filing_texts[name] = text[:15000][:15000]
+                    parsed = True
+                    break
+                except Exception:
+                    continue
+        if not parsed:
+            filing_texts[name] = f"No {name} filing found under expected paths."
+
     return filing_texts.get("10-K", ''), filing_texts.get("10-Q", '')
+
 
 # 5. Plot income statement trends
 @st.cache_data(show_spinner=False)
