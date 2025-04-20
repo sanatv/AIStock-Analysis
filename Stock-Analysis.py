@@ -40,34 +40,32 @@ def get_income_statement(ticker: str) -> pd.DataFrame:
 @st.cache_data(show_spinner=False)
 def download_and_parse_filings(ticker: str) -> tuple[str, str]:
     """Download and parse latest 10-K and 10-Q filings."""
-    # Initialize downloader
-    dl = Downloader("Your Company Name", "your-email@example.com")
-    # Initialize downloader to save filings under 'sec-edgar-filings'
-    # dl = Downloader("sec-edgar-filings")
-
-    # Download the latest filings
+    dl = Downloader("Vats Inc", "sanatv@gmail.com")
+    # Download filings
     dl.get("10-K", ticker, limit=1)
     dl.get("10-Q", ticker, limit=1)
 
     filing_texts: dict[str, str] = {}
-    base_dir = os.path.join("sec-edgar-filings", ticker)
-
+    # Search for the downloaded filing directories anywhere under cwd
     for name, ftype in [("10-K", "10-K"), ("10-Q", "10-Q")]:
-        filing_dir = os.path.join(base_dir, ftype)
-        if os.path.isdir(filing_dir):
-            try:
-                latest = sorted(os.listdir(filing_dir), reverse=True)[0]
-                file_path = os.path.join(filing_dir, latest, "full-submission.txt")
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    soup = BeautifulSoup(f.read(), 'lxml')
-                    text = soup.get_text(separator='\n')
-                    filing_texts[name] = text[:15000]
-            except Exception:
-                filing_texts[name] = f"Error parsing {name} filing."
-        else:
-            filing_texts[name] = f"No {name} filing found in {filing_dir}."
+        parsed = False
+        for root, dirs, files in os.walk(os.getcwd()):
+            if os.path.basename(root) == ftype and ticker in root:
+                try:
+                    latest = sorted(os.listdir(root), reverse=True)[0]
+                    file_path = os.path.join(root, latest, "full-submission.txt")
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        soup = BeautifulSoup(f.read(), 'lxml')
+                        text = soup.get_text(separator='\n')
+                        filing_texts[name] = text[:15000]
+                    parsed = True
+                    break
+                except Exception:
+                    continue
+        if not parsed:
+            filing_texts[name] = f"No {name} filing found under any path."
 
-    return filing_texts.get("10-K", ""), filing_texts.get("10-Q", "")
+    return filing_texts.get("10-K", ''), filing_texts.get("10-Q", '')
 
 # 5. Plot income statement trends
 @st.cache_data(show_spinner=False)
