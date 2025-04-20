@@ -52,7 +52,7 @@ def fetch_filings(ticker: str) -> tuple[str, str]:
 
 # 4. Plot utility
 METRIC_MAP = {
-    "Total Revenue": "TotalRevenue",
+    "Total Revenue": "Total Revenue",
     "Cost of Revenue": "CostOfRevenue",
     "Operating Income": "OperatingIncome",
     "Basic EPS": "BasicEps",
