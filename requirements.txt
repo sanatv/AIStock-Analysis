@@ -9,3 +9,4 @@ openai
 faiss-cpu
 langchain-community
 plotly
+yfinance
