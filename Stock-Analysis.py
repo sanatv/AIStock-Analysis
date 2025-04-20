@@ -37,9 +37,11 @@ def get_income_statement(ticker: str) -> pd.DataFrame:
     return stock.financials
 
 # 4. Download and parse SEC filings with caching
+
 @st.cache_data(show_spinner=False)
 def download_and_parse_filings(ticker: str) -> tuple[str, str]:
-    dl = Downloader("Vats Inc", "sanatv@gmail.com")
+    # Use explicit download path to align with base_dir
+    dl = Downloader(download_path="sec-edgar-filings")
     filing_texts: dict[str, str] = {}
     base_dir = os.path.join("sec-edgar-filings", ticker)
     for name, ftype in [("10-K", "10-K"), ("10-Q", "10-Q")]:
@@ -54,7 +56,7 @@ def download_and_parse_filings(ticker: str) -> tuple[str, str]:
                 filing_texts[name] = text[:15000]
         except Exception:
             filing_texts[name] = f"No {name} filing found or error parsing."
-    return filing_texts.get("10-K", ""), filing_texts.get("10-Q", "")
+    return filing_texts.get("10-K", ''), filing_texts.get("10-Q", '')
 
 # 5. Plot income statement trends
 @st.cache_data(show_spinner=False)
