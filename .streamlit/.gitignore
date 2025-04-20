@@ -1,0 +1,29 @@
+# === Python artifacts ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# === Environment files ===
+.env
+.venv/
+env/
+venv/
+
+# === Jupyter / notebooks ===
+.ipynb_checkpoints/
+
+# === Streamlit secrets ===
+.streamlit/secrets.toml
+
+# === OS-specific ===
+.DS_Store
+Thumbs.db
+
+# === VS Code ===
+.vscode/

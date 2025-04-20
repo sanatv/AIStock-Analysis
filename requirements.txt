@@ -1,0 +1,11 @@
+streamlit
+langgraph
+langchain-openai
+pandas
+networkx
+pyvis
+langchain
+openai
+faiss-cpu
+langchain-community
+plotly
