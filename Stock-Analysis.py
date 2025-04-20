@@ -41,9 +41,9 @@ def get_income_statement(ticker: str) -> pd.DataFrame:
 def download_and_parse_filings(ticker: str) -> tuple[str, str]:
     """Download and parse latest 10-K and 10-Q filings."""
     # Initialize downloader
-    # dl = Downloader("Your Company Name", "your-email@example.com")
+    dl = Downloader("Your Company Name", "your-email@example.com")
     # Initialize downloader to save filings under 'sec-edgar-filings'
-    dl = Downloader("sec-edgar-filings")
+    # dl = Downloader("sec-edgar-filings")
 
     # Download the latest filings
     dl.get("10-K", ticker, limit=1)
