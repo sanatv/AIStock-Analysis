@@ -105,7 +105,7 @@ Please analyze the following financial documents for {ticker}:
 
 3. Latest 10-Q Report:
 {ten_q}
-
+Create table and format it with Bol section where it make sense
 Tasks:
 1. Detailed Analysis: key metrics, trends, and notable changes.
 2. Calculate & Interpret Key Ratios: Revenue Growth, Gross Margin %, Operating Margin, Net Profit Margin, EPS, ROE, ROA.
