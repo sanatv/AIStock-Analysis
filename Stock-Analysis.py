@@ -19,13 +19,12 @@ if not OPENAI_KEY:
     st.error("🔒 Please configure your OpenAI API key in Streamlit secrets as 'openai_key'.")
     st.stop()
 
-@st.cache_data(show_spinner=False)
+@st.cache_resource
 def init_openai_client() -> OpenAI:
     """Initialize the OpenAI client using validated secrets."""
     return OpenAI(
         api_key=OPENAI_KEY,
         organization=OPENAI_ORG
-    )
 
 @st.cache_data(show_spinner=False)
 def get_income_statement(ticker: str) -> pd.DataFrame:
