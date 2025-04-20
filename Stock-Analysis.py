@@ -40,38 +40,32 @@ def get_income_statement(ticker: str) -> pd.DataFrame:
 @st.cache_data(show_spinner=False)
 def download_and_parse_filings(ticker: str) -> tuple[str, str]:
     """Download and parse latest 10-K and 10-Q filings."""
-    dl = Downloader("Vats Inc", "sanatv@gmail.com")
+    # Initialize downloader
+    dl = Downloader("Your Company Name", "your-email@example.com")
+    # Download the latest filings
     dl.get("10-K", ticker, limit=1)
     dl.get("10-Q", ticker, limit=1)
 
     filing_texts: dict[str, str] = {}
-    # Determine download base paths
-    paths = [
-        os.path.join("sec-edgar-filings", ticker),  # custom path
-        os.path.join(os.getcwd(), ticker)            # default path
-    ]
+    base_dir = os.path.join("sec-edgar-filings", ticker)
 
     for name, ftype in [("10-K", "10-K"), ("10-Q", "10-Q")]:
-        parsed = False
-        for base in paths:
-            filing_dir = os.path.join(base, ftype)
-            if os.path.isdir(filing_dir):
-                try:
-                    latest = sorted(os.listdir(filing_dir), reverse=True)[0]
-                    file_path = os.path.join(filing_dir, latest, "full-submission.txt")
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        soup = BeautifulSoup(f.read(), 'lxml')
-                        text = soup.get_text(separator='')
-                        filing_texts[name] = text[:15000][:15000]
-                    parsed = True
-                    break
-                except Exception:
-                    continue
-        if not parsed:
-            filing_texts[name] = f"No {name} filing found under expected paths."
+        filing_dir = os.path.join(base_dir, ftype)
+        if os.path.isdir(filing_dir):
+            try:
+                latest = sorted(os.listdir(filing_dir), reverse=True)[0]
+                file_path = os.path.join(filing_dir, latest, "full-submission.txt")
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    soup = BeautifulSoup(f.read(), 'lxml')
+                    text = soup.get_text(separator='
+')
+                    filing_texts[name] = text[:15000]
+            except Exception:
+                filing_texts[name] = f"Error parsing {name} filing."
+        else:
+            filing_texts[name] = f"No {name} filing found in {filing_dir}."
 
-    return filing_texts.get("10-K", ''), filing_texts.get("10-Q", '')
-
+    return filing_texts.get("10-K", ""), filing_texts.get("10-Q", "")
 
 # 5. Plot income statement trends
 @st.cache_data(show_spinner=False)
