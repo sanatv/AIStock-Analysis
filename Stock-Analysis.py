@@ -26,7 +26,9 @@ if not OPENAI_KEY:
 client = OpenAI(organization=OPENAI_ORG, api_key=OPENAI_KEY)
 
 # 2. SEC downloader
-dl = Downloader(download_path="sec-edgar-filings")
+# dl = Downloader(download_path="sec-edgar-filings")
+dl = Downloader()
+
 
 # 3. Caching data fetches
 @st.cache_data
