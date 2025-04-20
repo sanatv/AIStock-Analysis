@@ -57,7 +57,7 @@ def download_and_parse_filings(ticker: str) -> tuple[str, str]:
                 file_path = os.path.join(filing_dir, latest, "full-submission.txt")
                 with open(file_path, 'r', encoding='utf-8') as f:
                     soup = BeautifulSoup(f.read(), 'lxml')
-                    text = soup.get_text(separator='')
+                    text = soup.get_text(separator='\n')
                     filing_texts[name] = text[:15000]
             except Exception:
                 filing_texts[name] = f"Error parsing {name} filing."
