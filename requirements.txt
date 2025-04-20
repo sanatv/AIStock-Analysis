@@ -10,3 +10,4 @@ faiss-cpu
 langchain-community
 plotly
 yfinance
+sec_edgar_downloader
