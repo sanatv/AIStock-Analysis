@@ -27,7 +27,7 @@ client = OpenAI(organization=OPENAI_ORG, api_key=OPENAI_KEY)
 
 # 2. SEC downloader
 # dl = Downloader(download_path="sec-edgar-filings")
-dl = Downloader()
+dl = Downloader(Vats Inc, sanatv@gmail.com)
 
 
 # 3. Caching data fetches
