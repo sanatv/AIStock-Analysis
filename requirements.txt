@@ -16,3 +16,4 @@ matplotlib
 lxml
 fuzzywuzzy
 python-Levenshtein
+requests
