@@ -236,13 +236,16 @@ with st.sidebar:
 if show_analysis:
     st.markdown("## 📊 Company Overview")
     try:
-        info = get_company_info(ticker)
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Revenue", f"${info.get('totalRevenue', 0)/1e9:.2f}B" if info.get("totalRevenue") else "N/A")
-        col2.metric("EPS", f"${info.get('forwardEps', 'N/A')}")
-        col3.metric("P/E Ratio", f"{info.get('forwardPE', 'N/A')}")
-    except:
-        st.warning("Could not retrieve overview metrics.")
+        ticker_obj = yf.Ticker(ticker)
+        fast_info = ticker_obj.fast_info
+    
+        eps = ticker_obj.info.get("forwardEps", "N/A")  # fallback for EPS
+    
+        col1.metric("Market Cap", f"${fast_info.get('market_cap', 0)/1e9:.2f}B" if fast_info.get("market_cap") else "N/A")
+        col2.metric("EPS", f"${eps}")
+        col3.metric("P/E Ratio", f"{fast_info.get('pe_ratio', 'N/A')}")
+    except Exception as e:
+        st.warning(f"Unable to fetch summary metrics: {e}")
 
     # Tabs for structured view
     tabs = st.tabs(["📈 Income Statement", "📊 Balance Sheet", "📄 SEC Filings", "🤖 AI Commentary"])
