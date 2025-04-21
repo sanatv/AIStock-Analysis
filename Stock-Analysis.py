@@ -7,15 +7,21 @@ from bs4 import BeautifulSoup
 from openai import OpenAI
 import matplotlib.pyplot as plt
 
-# Streamlit page config
-st.set_page_config(page_title="Financial Analysis Dashboard", layout="wide")
 
-# Streamlit secrets configuration (secrets.toml)
-# [openai]
-# openai_key = "YOUR_API_KEY"
-# openai_org = "YOUR_ORG_ID"  # Optional
+# ------------------------------------------------------------------------------
+# 1. Page config & theming
+# ------------------------------------------------------------------------------
+st.set_page_config(
+    page_title="Financial Analysis Dashboard",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-# 1. Fetch and validate OpenAI credentials
+
+# ------------------------------------------------------------------------------
+# 2. Secrets & clients
+# ------------------------------------------------------------------------------
+
 OPENAI_KEY = st.secrets.get("openai_key")
 OPENAI_ORG = st.secrets.get("openai_org")
 if not OPENAI_KEY:
@@ -32,6 +38,7 @@ def init_openai_client() -> OpenAI:
 
 # 3. Fetch income statement with caching
 @st.cache_data(show_spinner=False)
+@st.cache_data(ttl=60 * 60)
 def get_income_statement(ticker: str) -> pd.DataFrame:
     stock = yf.Ticker(ticker)
     return stock.financials
@@ -40,6 +47,7 @@ def get_income_statement(ticker: str) -> pd.DataFrame:
 # Initialize downloader (replace with your actual details)
 dl = Downloader("Your Company Name", "your-email@example.com")
 @st.cache_data(show_spinner=False)
+@st.cache_data(ttl=60 * 60)
 
 def download_and_parse_filings(ticker):
     filings = [("10-K", "10-K"), ("10-Q", "10-Q")]
