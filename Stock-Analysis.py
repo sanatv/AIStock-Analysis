@@ -241,9 +241,12 @@ if show_analysis:
     
         eps = ticker_obj.info.get("forwardEps", "N/A")  # fallback for EPS
     
-        col1.metric("Market Cap", f"${fast_info.get('market_cap', 0)/1e9:.2f}B" if fast_info.get("market_cap") else "N/A")
+        col1, col2, col3, col4, col5 = st.columns(5)
+        col1.metric("Market Cap", f"${fast_info['market_cap']/1e9:.2f}B")
         col2.metric("EPS", f"${eps}")
-        col3.metric("P/E Ratio", f"{fast_info.get('pe_ratio', 'N/A')}")
+        col3.metric("P/E Ratio", f"{fast_info['pe_ratio']}")
+        col4.metric("Dividend Yield", f"{fast_info.get('dividend_yield', 0)*100:.2f}%" if fast_info.get("dividend_yield") else "N/A")
+        col5.metric("52W High", f"${fast_info['year_high']}")
     except Exception as e:
         st.warning(f"Unable to fetch summary metrics: {e}")
 
