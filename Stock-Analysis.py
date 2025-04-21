@@ -8,6 +8,10 @@ from openai import OpenAI
 import matplotlib.pyplot as plt
 import requests
 
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
+
 # ------------------------------------------------------------------------------
 # 1. Page config & theming
 # ------------------------------------------------------------------------------
@@ -210,6 +214,22 @@ Create table and format it with Bold section where it makes sense.
             {"role": "user", "content": prompt}
         ]
     )
+company_context = f"""
+Here is the financial data for {ticker}:
+
+### Income Statement:
+{income_df.to_string()}
+
+### Balance Sheet:
+{balance_df.to_string()}
+
+### 10-K Summary:
+{ten_k[:5000]}
+
+### 10-Q Summary:
+{ten_q[:5000]}
+"""
+
     return response.choices[0].message.content
 
 # ------------------------------------------------------------------------------
@@ -263,7 +283,7 @@ except Exception as e:
 
 
    # Tabs for structured view
-tabs = st.tabs(["📈 Income Statement", "📊 Balance Sheet", "📄 SEC Filings", "🤖 AI Commentary"])
+tabs = st.tabs(["📈 Income Statement", "📊 Balance Sheet", "📄 SEC Filings", "🤖 AI Commentary","💬 Company Chatbot"])
     
 with tabs[0]:
 	st.subheader("Income Statement (Raw)")
@@ -304,6 +324,34 @@ with tabs[3]:
 	with st.spinner("Generating commentary with AI..."):
 		commentary = get_chatgpt_commentary(client, income_df.to_string(), balance_df.to_string(),ten_k, ten_q, ticker)
 	st.markdown(commentary, unsafe_allow_html=True)
+with tabs[4]:
+    st.subheader("💬 Ask Questions About the Company")
+
+    user_input = st.text_input("Ask me anything about this company:")
+    if user_input:
+        openai_client = init_openai_client()
+
+        messages = [
+            {"role": "system", "content": f"You are a financial assistant. Use the context below to answer questions:\n\n{company_context}"},
+            {"role": "user", "content": user_input}
+        ]
+
+        try:
+            response = openai_client.chat.completions.create(
+                model="gpt-4",
+                messages=messages
+            )
+            reply = response.choices[0].message.content
+            st.session_state.chat_history.append((user_input, reply))
+        except Exception as e:
+            st.error(f"Chatbot error: {e}")
+            reply = None
+
+    # Show chat history
+    for i, (q, a) in enumerate(reversed(st.session_state.chat_history), 1):
+        with st.expander(f"Q{i}: {q}"):
+            st.markdown(a)
+
 
 st.markdown("---")
 st.markdown(
