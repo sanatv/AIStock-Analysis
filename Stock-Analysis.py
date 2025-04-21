@@ -37,35 +37,39 @@ def get_income_statement(ticker: str) -> pd.DataFrame:
     return stock.financials
 
 # 4. Download and parse SEC filings with caching
+
 @st.cache_data(show_spinner=False)
-def download_and_parse_filings(ticker: str) -> tuple[str, str]:
-    """Download and parse latest 10-K and 10-Q filings."""
-    dl = Downloader("Vats Inc", "sanatv@gmail.com")
-    # Download filings
-    dl.get("10-K", ticker, limit=1)
-    dl.get("10-Q", ticker, limit=1)
+dl = Downloader("Vats Inc", "sanatv@gmail.com")
+def download_view_parse_filings(ticker, count=1):
+    try:
+        filings = [("10-K", "10-K"), ("10-Q", "10-Q"), ("Annual Report", "ARS")]
 
-    filing_texts: dict[str, str] = {}
-    # Search for the downloaded filing directories anywhere under cwd
-    for name, ftype in [("10-K", "10-K"), ("10-Q", "10-Q")]:
-        parsed = False
-        for root, dirs, files in os.walk(os.getcwd()):
-            if os.path.basename(root) == ftype and ticker in root:
-                try:
-                    latest = sorted(os.listdir(root), reverse=True)[0]
-                    file_path = os.path.join(root, latest, "full-submission.txt")
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        soup = BeautifulSoup(f.read(), 'lxml')
-                        text = soup.get_text(separator='\n')
-                        filing_texts[name] = text[:15000]
-                    parsed = True
-                    break
-                except Exception:
-                    continue
-        if not parsed:
-            filing_texts[name] = f"No {name} filing found under any path."
+        for filing_name, filing_type in filings:
+            st.info(f"📥 Downloading latest {count} {filing_name} filing(s) for {ticker}...")
+            dl.get(filing_type, ticker, limit=count)
+            st.success(f"{filing_name} download complete.")
 
-    return filing_texts.get("10-K", ''), filing_texts.get("10-Q", '')
+        base_dir = os.path.join("sec-edgar-filings", ticker)
+
+        def parse_filing(file_path):
+            with open(file_path, 'r', encoding='utf-8') as file:
+                content = file.read()
+            soup = BeautifulSoup(content, 'lxml')
+            text_content = soup.get_text(separator='\n')
+            return text_content[:5000]
+
+        for filing_name, filing_type in filings:
+            filing_dir = os.path.join(base_dir, filing_type)
+            if os.path.exists(filing_dir):
+                latest_filing = sorted(os.listdir(filing_dir), reverse=True)[0]
+                filing_file = os.path.join(filing_dir, latest_filing, "full-submission.txt")
+                st.subheader(f"{filing_name} - Latest Filing")
+                if os.path.exists(filing_file):
+                    parsed_text = parse_filing(filing_file)
+                    st.text_area("📄 Filing Preview (First 5000 characters)", parsed_text, height=400)
+
+    except Exception as e:
+        st.error(f"❌ An error occurred: {e}")
 
 # 5. Plot income statement trends
 @st.cache_data(show_spinner=False)
@@ -154,8 +158,19 @@ if st.button("Generate Analysis"):
         st.stop()
     st.dataframe(income_df)
 
-    with st.spinner("Downloading SEC filings..."):
-        ten_k, ten_q = download_and_parse_filings(ticker)
+    # with st.spinner("Downloading SEC filings..."):
+    #     ten_k, ten_q = download_and_parse_filings(ticker)
+
+
+    st.title("📂 SEC Filing Downloader and Parser")
+    ticker_input = st.text_input("Enter Ticker Symbol (e.g., AAPL):")
+    filing_count = st.number_input("Number of filings to download per type:", min_value=1, max_value=5, value=1)
+
+    if st.button("Download and Parse"):
+        if ticker_input:
+            download_view_parse_filings(ticker_input.upper(), filing_count)
+        else:
+            st.warning("Please enter a valid ticker symbol.")
 
     st.subheader("📈 Trends")
     plot_income_statement_trends(income_df, ticker)
