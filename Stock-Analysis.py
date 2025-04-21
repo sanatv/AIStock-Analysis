@@ -40,6 +40,12 @@ def get_income_statement(ticker: str) -> pd.DataFrame:
     return stock.financials
 
 @st.cache_data(show_spinner=False, ttl=60 * 60)
+def get_balance_sheet(ticker: str) -> pd.DataFrame:
+    stock = yf.Ticker(ticker)
+    return stock.balance_sheet
+
+
+@st.cache_data(show_spinner=False, ttl=60 * 60)
 def get_company_info(ticker: str):
     return yf.Ticker(ticker).info
 
@@ -98,6 +104,28 @@ def plot_income_statement_trends(income: pd.DataFrame, ticker: str) -> None:
         ax.grid(True)
 
     st.pyplot(fig)
+    
+def plot_balance_trends(balance: pd.DataFrame, ticker: str) -> None:
+    METRICS = {
+        "Total Assets": "Total Assets",
+        "Total Liabilities": "Total Liab"
+    }
+    available = {label: idx for label, idx in METRICS.items() if idx in balance.index}
+    if not available:
+        st.warning("No balance sheet metrics found to plot.")
+        return
+
+    fig, ax = plt.subplots(figsize=(10, 5))
+    for label, idx in available.items():
+        series = balance.loc[idx].iloc[::-1]
+        ax.plot(series.index.astype(str), series.values, label=label, marker='o')
+
+    ax.set_title(f"{ticker} Balance Sheet Trends")
+    ax.set_xlabel("Period")
+    ax.set_ylabel("Value")
+    ax.legend()
+    ax.grid(True)
+    st.pyplot(fig)
 
 def get_chatgpt_commentary(openai_client: OpenAI, income_str: str, ten_k: str, ten_q: str, ticker: str) -> str:
     prompt = f"""
@@ -150,8 +178,8 @@ if show_analysis:
         st.warning("Could not retrieve overview metrics.")
 
     # Tabs for structured view
-    tabs = st.tabs(["📈 Income Statement", "📄 SEC Filings", "🤖 AI Commentary"])
-
+    tabs = st.tabs(["📈 Income Statement", "📊 Balance Sheet", "📄 SEC Filings", "🤖 AI Commentary"])
+    
     with tabs[0]:
         st.subheader("Income Statement (Raw)")
         with st.spinner("Fetching Income Statement..."):
@@ -163,8 +191,20 @@ if show_analysis:
             st.dataframe(income_df)
             st.subheader("Income Statement Trends")
             plot_income_statement_trends(income_df, ticker)
-
     with tabs[1]:
+    st.subheader("Balance Sheet (Raw)")
+    with st.spinner("Fetching Balance Sheet..."):
+        balance_df = get_balance_sheet(ticker)
+
+    if balance_df is None or balance_df.empty:
+        st.error("No balance sheet data available.")
+    else:
+        st.dataframe(balance_df)
+        st.subheader("Balance Sheet Trends")
+        plot_balance_trends(balance_df, ticker)
+
+
+    with tabs[2]:
         st.subheader("SEC Filings")
         with st.spinner("Downloading and Parsing SEC filings..."):
             ten_k, ten_q = download_and_parse_filings(ticker)
@@ -174,7 +214,7 @@ if show_analysis:
         st.markdown("**Latest 10-Q Filing (Preview)**")
         st.text_area("10-Q Content", ten_q[:5000], height=150)
 
-    with tabs[2]:
+    with tabs[3]:
         st.subheader("AI Analysis and Recommendations")
         with st.spinner("Generating commentary with AI..."):
             commentary = get_chatgpt_commentary(client, income_df.to_string(), ten_k, ten_q, ticker)
