@@ -267,22 +267,7 @@ try:
 except Exception as e:
     st.warning(f"⚠️ Unable to fetch summary metrics: {e}")
 
-# 👇 Chat context
-company_context = f"""
-Here is the financial data for {ticker}:
 
-### Income Statement:
-{income_df.to_string()}
-
-### Balance Sheet:
-{balance_df.to_string()}
-
-### 10-K Summary:
-{ten_k[:5000]}
-
-### 10-Q Summary:
-{ten_q[:5000]}
-"""
    # Tabs for structured view
 tabs = st.tabs(["📈 Income Statement", "📊 Balance Sheet", "📄 SEC Filings", "🤖 AI Commentary","💬 Company Chatbot"])
     
@@ -325,6 +310,23 @@ with tabs[3]:
 	with st.spinner("Generating commentary with AI..."):
 		commentary = get_chatgpt_commentary(client, income_df.to_string(), balance_df.to_string(),ten_k, ten_q, ticker)
 	st.markdown(commentary, unsafe_allow_html=True)
+# 👇 Chat context
+company_context = f"""
+Here is the financial data for {ticker}:
+
+### Income Statement:
+{income_df.to_string()}
+
+### Balance Sheet:
+{balance_df.to_string()}
+
+### 10-K Summary:
+{ten_k[:5000]}
+
+### 10-Q Summary:
+{ten_q[:5000]}
+"""
+
 with tabs[4]:
     st.subheader("💬 Ask Questions About the Company")
 
