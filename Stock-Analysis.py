@@ -41,7 +41,7 @@ def get_income_statement(ticker: str) -> pd.DataFrame:
 @st.cache_data(show_spinner=False)
 
 def download_view_parse_filings(ticker, count=1):
-dl = Downloader("Vats Inc", "sanatv@gmail.com")
+    dl = Downloader("Vats Inc", "sanatv@gmail.com")
     try:
         filings = [("10-K", "10-K"), ("10-Q", "10-Q"), ("Annual Report", "ARS")]
 
