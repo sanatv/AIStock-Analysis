@@ -13,3 +13,4 @@ yfinance
 sec_edgar_downloader
 bs4
 matplotlib
+lxml
