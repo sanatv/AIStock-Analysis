@@ -37,7 +37,8 @@ def get_income_statement(ticker: str) -> pd.DataFrame:
     return stock.financials
 
 # 4. Download and parse SEC filings with caching
-
+# Initialize downloader (replace with your actual details)
+dl = Downloader("Your Company Name", "your-email@example.com")
 @st.cache_data(show_spinner=False)
 
 def download_and_parse_filings(ticker):
