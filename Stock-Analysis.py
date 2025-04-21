@@ -267,7 +267,22 @@ try:
 except Exception as e:
     st.warning(f"⚠️ Unable to fetch summary metrics: {e}")
 
+# 👇 Chat context
+company_context = f"""
+Here is the financial data for {ticker}:
 
+### Income Statement:
+{income_df.to_string()}
+
+### Balance Sheet:
+{balance_df.to_string()}
+
+### 10-K Summary:
+{ten_k[:5000]}
+
+### 10-Q Summary:
+{ten_q[:5000]}
+"""
    # Tabs for structured view
 tabs = st.tabs(["📈 Income Statement", "📊 Balance Sheet", "📄 SEC Filings", "🤖 AI Commentary","💬 Company Chatbot"])
     
@@ -324,7 +339,7 @@ with tabs[4]:
 
         try:
             response = openai_client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-4.1-mini",
                 messages=messages
             )
             reply = response.choices[0].message.content
@@ -338,22 +353,7 @@ with tabs[4]:
         with st.expander(f"Q{i}: {q}"):
             st.markdown(a)
 
-# 👇 Chat context
-company_context = f"""
-Here is the financial data for {ticker}:
 
-### Income Statement:
-{income_df.to_string()}
-
-### Balance Sheet:
-{balance_df.to_string()}
-
-### 10-K Summary:
-{ten_k[:5000]}
-
-### 10-Q Summary:
-{ten_q[:5000]}
-"""
 st.markdown("---")
 st.markdown(
 	"<div style='text-align:center; font-size:0.8em; color:grey;'>"
