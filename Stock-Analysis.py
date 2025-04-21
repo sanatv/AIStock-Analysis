@@ -217,7 +217,7 @@ if show_analysis:
     with tabs[3]:
         st.subheader("AI Analysis and Recommendations")
         with st.spinner("Generating commentary with AI..."):
-            commentary = get_chatgpt_commentary(client, income_df.to_string(), ten_k, ten_q, ticker)
+            commentary = get_chatgpt_commentary(client, income_df.to_string(), balance_df.to_string(),ten_k, ten_q, ticker)
         st.markdown(commentary, unsafe_allow_html=True)
 
     st.markdown("---")
