@@ -214,6 +214,9 @@ Create table and format it with Bold section where it makes sense.
             {"role": "user", "content": prompt}
         ]
     )
+
+    return response.choices[0].message.content
+# 👇 Chat context
 company_context = f"""
 Here is the financial data for {ticker}:
 
@@ -229,8 +232,6 @@ Here is the financial data for {ticker}:
 ### 10-Q Summary:
 {ten_q[:5000]}
 """
-
-    return response.choices[0].message.content
 
 # ------------------------------------------------------------------------------
 # 4. UI: Sidebar & Layout
