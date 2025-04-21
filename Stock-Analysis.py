@@ -150,7 +150,7 @@ if show_analysis:
         st.warning("Could not retrieve overview metrics.")
 
     # Tabs for structured view
-    tabs = st.tabs(["📈 Income Statement", "📄 SEC Filings", "🤖 GPT Commentary"])
+    tabs = st.tabs(["📈 Income Statement", "📄 SEC Filings", "🤖 AI Commentary"])
 
     with tabs[0]:
         st.subheader("Income Statement (Raw)")
@@ -175,15 +175,15 @@ if show_analysis:
         st.text_area("10-Q Content", ten_q[:5000], height=150)
 
     with tabs[2]:
-        st.subheader("GPT Analysis and Recommendations")
-        with st.spinner("Generating commentary with GPT..."):
+        st.subheader("AI Analysis and Recommendations")
+        with st.spinner("Generating commentary with AI..."):
             commentary = get_chatgpt_commentary(client, income_df.to_string(), ten_k, ten_q, ticker)
         st.markdown(commentary, unsafe_allow_html=True)
 
     st.markdown("---")
     st.markdown(
         "<div style='text-align:center; font-size:0.8em; color:grey;'>"
-        "Built with Streamlit • Data from Yahoo Finance & SEC Edgar • Powered by OpenAI"
+        "Built with Streamlit • Data from Yahoo Finance & SEC Edgar • Powered by OpenAI • sanatv@gmail.com"
         "</div>",
         unsafe_allow_html=True
     )
