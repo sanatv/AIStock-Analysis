@@ -199,12 +199,12 @@ if show_analysis:
         with st.spinner("Fetching Balance Sheet..."):
             balance_df = get_balance_sheet(ticker)
 
-    if balance_df is None or balance_df.empty:
-        st.error("No balance sheet data available.")
-    else:
-        st.dataframe(balance_df)
-        st.subheader("Balance Sheet Trends")
-        plot_balance_trends(balance_df, ticker)
+        if balance_df is None or balance_df.empty:
+            st.error("No balance sheet data available.")
+        else:
+            st.dataframe(balance_df)
+            st.subheader("Balance Sheet Trends")
+            plot_balance_trends(balance_df, ticker)
 
 
     with tabs[2]:
