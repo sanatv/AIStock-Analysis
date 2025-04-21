@@ -127,22 +127,25 @@ def plot_balance_trends(balance: pd.DataFrame, ticker: str) -> None:
     ax.grid(True)
     st.pyplot(fig)
 
-def get_chatgpt_commentary(openai_client: OpenAI, income_str: str, ten_k: str, ten_q: str, ticker: str) -> str:
+def get_chatgpt_commentary(openai_client: OpenAI, income_str: str,balance_str: str,  ten_k: str, ten_q: str, ticker: str) -> str:
     prompt = f"""
 Please analyze the following financial documents for {ticker}:
 
 1. Income Statement:
 {income_str}
 
-2. Latest 10-K Report:
+2. Balance Sheet:
+{balance_str}
+
+3. Latest 10-K Report:
 {ten_k}
 
-3. Latest 10-Q Report:
+4. Latest 10-Q Report:
 {ten_q}
 
 Tasks:
 1. Detailed Analysis: key metrics, trends, and notable changes.
-2. Calculate & Interpret Key Ratios: Revenue Growth, Gross Margin %, Operating Margin, Net Profit Margin, EPS, ROE, ROA.
+2. Calculate & Interpret Key Ratios: Revenue Growth, Gross Margin %, Operating Margin, Net Profit Margin, EPS,Liquidity Ratios, Levergae Ratios, Efficiency ratios, Book Value Ratios, ROE, ROA.
 3. Compare to Industry Standards.
 4. Summary & Key Takeaways.
 5. Recommendations.
