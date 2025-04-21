@@ -265,7 +265,7 @@ except Exception as e:
    # Tabs for structured view
 tabs = st.tabs(["📈 Income Statement", "📊 Balance Sheet", "📄 SEC Filings", "🤖 AI Commentary"])
     
- with tabs[0]:
+with tabs[0]:
 	st.subheader("Income Statement (Raw)")
 	with st.spinner("Fetching Income Statement..."):
 		income_df = get_income_statement(ticker)
