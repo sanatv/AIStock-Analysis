@@ -254,9 +254,9 @@ try:
     col3.metric("📈 P/E Ratio", f"{pe_ratio:.2f}" if pe_ratio else "N/A")
 
     # # Optional extra metrics row
-    # col4, col5 = st.columns(2)
-    # col4.metric("💸 Dividend Yield", f"{dividend_yield*100:.2f}%" if dividend_yield else "N/A")
-    # col5.metric("🔺 52W High", f"${year_high:.2f}" if year_high else "N/A")
+    col4, col5 = st.columns(2)
+    col4.metric("💸 Dividend Yield", f"{dividend_yield*100:.2f}%" if dividend_yield else "N/A")
+    col5.metric("🔺 52W High", f"${year_high:.2f}" if year_high else "N/A")
 
 except Exception as e:
     st.warning(f"⚠️ Unable to fetch summary metrics: {e}")
