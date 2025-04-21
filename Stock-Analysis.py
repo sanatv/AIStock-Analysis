@@ -66,8 +66,6 @@ def get_balance_sheet(ticker: str) -> pd.DataFrame:
 
 #     return ticker
 
-import requests
-
 def global_search_ticker(query: str):
     url = "https://query2.finance.yahoo.com/v1/finance/search"
     params = {"q": query, "quotes_count": 5, "news_count": 0}
