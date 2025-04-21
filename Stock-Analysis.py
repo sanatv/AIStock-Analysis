@@ -159,13 +159,13 @@ if st.button("Generate Analysis"):
         st.stop()
     st.dataframe(income_df)
 
-    # with st.spinner("Downloading SEC filings..."):
-    #     ten_k, ten_q = download_and_parse_filings(ticker)
+    with st.spinner("Downloading SEC filings..."):
+        ten_k, ten_q = download_and_parse_filings(ticker)
 
 
-    st.title("📂 SEC Filing Downloader and Parser")
-    ticker_input = st.text_input("Enter Ticker Symbol (e.g., AAPL):")
-    filing_count = st.number_input("Number of filings to download per type:", min_value=1, max_value=5, value=1)
+    # st.title("📂 SEC Filing Downloader and Parser")
+    # ticker_input = st.text_input("Enter Ticker Symbol (e.g., AAPL):")
+    # filing_count = st.number_input("Number of filings to download per type:", min_value=1, max_value=5, value=1)
 
     if st.button("Download and Parse"):
         if ticker_input:
