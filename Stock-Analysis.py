@@ -48,6 +48,43 @@ def get_balance_sheet(ticker: str) -> pd.DataFrame:
 @st.cache_data(show_spinner=False, ttl=60 * 60)
 def get_company_info(ticker: str):
     return yf.Ticker(ticker).info
+from fuzzywuzzy import process
+
+@st.cache_data(ttl=3600)
+def search_ticker_by_name(company_name: str) -> str:
+    """
+    Search for a stock ticker by partial or full company name using fuzzy matching.
+    """
+    # Preload a common list of companies
+    sp500 = pd.read_html("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")[0]
+    choices = dict(zip(sp500["Security"], sp500["Symbol"]))
+
+    # Fuzzy match against company names
+    match, score = process.extractOne(company_name, choices.keys())
+    ticker = choices.get(match)
+
+    return ticker
+import requests
+
+def global_search_ticker(query: str):
+    url = "https://query2.finance.yahoo.com/v1/finance/search"
+    params = {"q": query, "quotes_count": 5, "news_count": 0}
+    response = requests.get(url, params=params)
+
+    if response.status_code == 200:
+        data = response.json()
+        return [
+            {
+                "symbol": item["symbol"],
+                "shortname": item.get("shortname", ""),
+                "exchange": item.get("exchange", ""),
+                "type": item.get("quoteType", "")
+            }
+            for item in data.get("quotes", [])
+            if item.get("quoteType") in ["EQUITY", "ETF"]
+        ]
+    else:
+        return []
 
 # SEC Downloader setup
 dl = Downloader("Your Company Name", "your-email@example.com")
@@ -167,7 +204,20 @@ Create table and format it with Bold section where it makes sense.
 # ------------------------------------------------------------------------------
 with st.sidebar:
     st.title("🔍 Stock Selection")
-    ticker = st.text_input("Enter Ticker Symbol:", value="MSFT").upper().strip()
+    # ticker = st.text_input("Enter Ticker Symbol:", value="MSFT").upper().strip()
+    raw_input = st.text_input("🔍 Enter Company Name or Ticker (e.g., Apple, Reliance, Samsung):", value="Microsoft")
+
+    ticker = None
+    if raw_input:
+        results = global_search_ticker(raw_input)
+        if results:
+            options = [f"{r['symbol']} - {r['shortname']} ({r['exchange']})" for r in results]
+            selection = st.selectbox("Select matching result:", options)
+            ticker = selection.split(" - ")[0]
+            st.success(f"Selected Ticker: {ticker}")
+        else:
+            st.warning("No matching ticker found. Try another company or symbol.")
+
     show_analysis = st.button("Generate Full Analysis")
 
 if show_analysis:
