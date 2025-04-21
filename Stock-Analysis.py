@@ -169,7 +169,7 @@ if st.button("Generate Analysis"):
 
     if st.button("Download and Parse"):
         if ticker_input:
-            download_view_parse_filings(ticker_input.upper(), filing_count)
+            ten_k, ten_q = download_view_parse_filings(ticker_input.upper(), filing_count)
         else:
             st.warning("Please enter a valid ticker symbol.")
 
