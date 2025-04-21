@@ -66,25 +66,40 @@ def get_balance_sheet(ticker: str) -> pd.DataFrame:
 
 #     return ticker
 
+import requests
+
 def global_search_ticker(query: str):
     url = "https://query2.finance.yahoo.com/v1/finance/search"
     params = {"q": query, "quotes_count": 5, "news_count": 0}
-    response = requests.get(url, params=params)
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
 
-    if response.status_code == 200:
-        data = response.json()
-        return [
-            {
-                "symbol": item["symbol"],
-                "shortname": item.get("shortname", ""),
-                "exchange": item.get("exchange", ""),
-                "type": item.get("quoteType", "")
-            }
-            for item in data.get("quotes", [])
-            if item.get("quoteType") in ["EQUITY", "ETF"]
-        ]
-    else:
+    try:
+        response = requests.get(url, params=params, headers=headers, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+
+            # DEBUG: Uncomment if needed
+            # st.json(data)  # see raw response
+
+            results = []
+            for item in data.get("quotes", []):
+                if item.get("quoteType") in ["EQUITY", "ETF"] and "symbol" in item:
+                    results.append({
+                        "symbol": item["symbol"],
+                        "shortname": item.get("shortname", ""),
+                        "exchange": item.get("exchange", ""),
+                        "type": item.get("quoteType", "")
+                    })
+            return results
+        else:
+            st.error(f"Yahoo API returned status {response.status_code}")
+            return []
+    except Exception as e:
+        st.error(f"Error fetching ticker: {e}")
         return []
+
 
 # SEC Downloader setup
 dl = Downloader("Your Company Name", "your-email@example.com")
@@ -203,20 +218,20 @@ Create table and format it with Bold section where it makes sense.
 # 4. UI: Sidebar & Layout
 # ------------------------------------------------------------------------------
 with st.sidebar:
-    st.title("🔍 Stock Selection")
-    # ticker = st.text_input("Enter Ticker Symbol:", value="MSFT").upper().strip()
-    raw_input = st.text_input("🔍 Enter Company Name or Ticker (e.g., Apple, Reliance, Samsung):", value="Microsoft")
-
+    st.markdown("## 🔍 Smart Ticker Lookup")
+    company_query = st.text_input("Enter company name or ticker:", value="Apple")
+    
     ticker = None
-    if raw_input:
-        results = global_search_ticker(raw_input)
-        if results:
-            options = [f"{r['symbol']} - {r['shortname']} ({r['exchange']})" for r in results]
-            selection = st.selectbox("Select matching result:", options)
-            ticker = selection.split(" - ")[0]
-            st.success(f"Selected Ticker: {ticker}")
+    if company_query:
+        matches = global_search_ticker(company_query)
+        if matches:
+            options = [f"{m['symbol']} - {m['shortname']} ({m['exchange']})" for m in matches]
+            selected = st.selectbox("Choose the company:", options)
+            ticker = selected.split(" - ")[0]
+            st.success(f"Resolved Ticker: `{ticker}`")
         else:
-            st.warning("No matching ticker found. Try another company or symbol.")
+            st.warning("⚠️ No matching ticker found. Try a different name or symbol.")
+
 
     show_analysis = st.button("Generate Full Analysis")
 
