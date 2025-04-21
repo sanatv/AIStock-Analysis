@@ -153,7 +153,8 @@ Tasks:
 Create table and format it with Bold section where it makes sense.
 """
     response = openai_client.chat.completions.create(
-        model="o3-mini-2025-01-31",
+        # model="o3-mini-2025-01-31",
+        model="gpt-4.1",
         messages=[
             {"role": "system", "content": "You are a financial analyst providing detailed insights."},
             {"role": "user", "content": prompt}
