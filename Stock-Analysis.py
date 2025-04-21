@@ -235,20 +235,32 @@ with st.sidebar:
 
 if show_analysis:
     st.markdown("## 📊 Company Overview")
-    try:
-        ticker_obj = yf.Ticker(ticker)
-        fast_info = ticker_obj.fast_info
-    
-        eps = ticker_obj.info.get("forwardEps", "N/A")  # fallback for EPS
-    
-        col1, col2, col3, col4, col5 = st.columns(5)
-        col1.metric("Market Cap", f"${fast_info['market_cap']/1e9:.2f}B")
-        col2.metric("EPS", f"${eps}")
-        col3.metric("P/E Ratio", f"{fast_info['pe_ratio']}")
-        col4.metric("Dividend Yield", f"{fast_info.get('dividend_yield', 0)*100:.2f}%" if fast_info.get("dividend_yield") else "N/A")
-        col5.metric("52W High", f"${fast_info['year_high']}")
-    except Exception as e:
-        st.warning(f"Unable to fetch summary metrics: {e}")
+try:
+    ticker_obj = yf.Ticker(ticker)
+    fast_info = ticker_obj.fast_info or {}
+    full_info = ticker_obj.info or {}
+
+    # Smart Fallbacks
+    market_cap = fast_info.get("market_cap") or full_info.get("marketCap")
+    pe_ratio   = fast_info.get("pe_ratio")   or full_info.get("forwardPE")
+    eps        = full_info.get("forwardEps") or full_info.get("trailingEps")
+    dividend_yield = fast_info.get("dividend_yield") or full_info.get("dividendYield")
+    year_high  = fast_info.get("year_high") or full_info.get("fiftyTwoWeekHigh")
+
+    # Display in top row
+    col1, col2, col3 = st.columns(3)
+    col1.metric("📦 Market Cap", f"${market_cap/1e9:.2f}B" if market_cap else "N/A")
+    col2.metric("📊 EPS", f"${eps:.2f}" if eps else "N/A")
+    col3.metric("📈 P/E Ratio", f"{pe_ratio:.2f}" if pe_ratio else "N/A")
+
+    # Optional extra metrics row
+    col4, col5 = st.columns(2)
+    col4.metric("💸 Dividend Yield", f"{dividend_yield*100:.2f}%" if dividend_yield else "N/A")
+    col5.metric("🔺 52W High", f"${year_high:.2f}" if year_high else "N/A")
+
+except Exception as e:
+    st.warning(f"⚠️ Unable to fetch summary metrics: {e}")
+
 
     # Tabs for structured view
     tabs = st.tabs(["📈 Income Statement", "📊 Balance Sheet", "📄 SEC Filings", "🤖 AI Commentary"])
