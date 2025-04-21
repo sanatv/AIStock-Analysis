@@ -6,6 +6,7 @@ from sec_edgar_downloader import Downloader
 from bs4 import BeautifulSoup
 from openai import OpenAI
 import matplotlib.pyplot as plt
+import requests
 
 # ------------------------------------------------------------------------------
 # 1. Page config & theming
@@ -64,7 +65,6 @@ def get_balance_sheet(ticker: str) -> pd.DataFrame:
 #     ticker = choices.get(match)
 
 #     return ticker
-import requests
 
 def global_search_ticker(query: str):
     url = "https://query2.finance.yahoo.com/v1/finance/search"
