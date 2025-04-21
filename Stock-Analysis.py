@@ -192,9 +192,9 @@ if show_analysis:
             st.subheader("Income Statement Trends")
             plot_income_statement_trends(income_df, ticker)
     with tabs[1]:
-    st.subheader("Balance Sheet (Raw)")
-    with st.spinner("Fetching Balance Sheet..."):
-        balance_df = get_balance_sheet(ticker)
+        st.subheader("Balance Sheet (Raw)")
+        with st.spinner("Fetching Balance Sheet..."):
+            balance_df = get_balance_sheet(ticker)
 
     if balance_df is None or balance_df.empty:
         st.error("No balance sheet data available.")
