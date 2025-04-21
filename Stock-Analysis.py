@@ -45,10 +45,10 @@ def get_balance_sheet(ticker: str) -> pd.DataFrame:
     return stock.balance_sheet
 
 
-@st.cache_data(show_spinner=False, ttl=60 * 60)
-def get_company_info(ticker: str):
-    return yf.Ticker(ticker).info
-from fuzzywuzzy import process
+# @st.cache_data(show_spinner=False, ttl=60 * 60)
+# def get_company_info(ticker: str):
+#     return yf.Ticker(ticker).info
+# from fuzzywuzzy import process
 
 @st.cache_data(ttl=3600)
 def search_ticker_by_name(company_name: str) -> str:
