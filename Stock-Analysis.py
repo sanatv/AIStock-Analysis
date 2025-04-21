@@ -7,7 +7,6 @@ from bs4 import BeautifulSoup
 from openai import OpenAI
 import matplotlib.pyplot as plt
 
-
 # ------------------------------------------------------------------------------
 # 1. Page config & theming
 # ------------------------------------------------------------------------------
@@ -17,38 +16,37 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-
 # ------------------------------------------------------------------------------
 # 2. Secrets & clients
 # ------------------------------------------------------------------------------
-
 OPENAI_KEY = st.secrets.get("openai_key")
 OPENAI_ORG = st.secrets.get("openai_org")
 if not OPENAI_KEY:
     st.error("🔒 Please configure your OpenAI API key in Streamlit secrets as 'openai_key'.")
     st.stop()
 
-# 2. Initialize OpenAI client as a cached resource (non-pickleable)
 @st.cache_resource
 def init_openai_client() -> OpenAI:
-    return OpenAI(
-        api_key=OPENAI_KEY,
-        organization=OPENAI_ORG
-    )
+    return OpenAI(api_key=OPENAI_KEY, organization=OPENAI_ORG)
 
-# 3. Fetch income statement with caching
-@st.cache_data(show_spinner=False)
-@st.cache_data(ttl=60 * 60)
+client = init_openai_client()
+
+# ------------------------------------------------------------------------------
+# 3. Data fetching & transformation
+# ------------------------------------------------------------------------------
+@st.cache_data(show_spinner=False, ttl=60 * 60)
 def get_income_statement(ticker: str) -> pd.DataFrame:
     stock = yf.Ticker(ticker)
     return stock.financials
 
-# 4. Download and parse SEC filings with caching
-# Initialize downloader (replace with your actual details)
-dl = Downloader("Your Company Name", "your-email@example.com")
-@st.cache_data(show_spinner=False)
-@st.cache_data(ttl=60 * 60)
+@st.cache_data(show_spinner=False, ttl=60 * 60)
+def get_company_info(ticker: str):
+    return yf.Ticker(ticker).info
 
+# SEC Downloader setup
+dl = Downloader("Your Company Name", "your-email@example.com")
+
+@st.cache_data(show_spinner=False, ttl=60 * 60)
 def download_and_parse_filings(ticker):
     filings = [("10-K", "10-K"), ("10-Q", "10-Q")]
     filing_texts = {}
@@ -74,7 +72,6 @@ def download_and_parse_filings(ticker):
 
     return filing_texts.get("10-K", ""), filing_texts.get("10-Q", "")
 
-# 5. Plot income statement trends
 @st.cache_data(show_spinner=False)
 def plot_income_statement_trends(income: pd.DataFrame, ticker: str) -> None:
     METRIC_MAP = {
@@ -102,17 +99,8 @@ def plot_income_statement_trends(income: pd.DataFrame, ticker: str) -> None:
 
     st.pyplot(fig)
 
-# 6. Generate ChatGPT commentary
-
-def get_chatgpt_commentary(
-    openai_client: OpenAI,
-    income_str: str,
-    ten_k: str,
-    ten_q: str,
-    ticker: str
-) -> str:
-    prompt = (
-        f"""
+def get_chatgpt_commentary(openai_client: OpenAI, income_str: str, ten_k: str, ten_q: str, ticker: str) -> str:
+    prompt = f"""
 Please analyze the following financial documents for {ticker}:
 
 1. Income Statement:
@@ -123,7 +111,7 @@ Please analyze the following financial documents for {ticker}:
 
 3. Latest 10-Q Report:
 {ten_q}
-Create table and format it with Bol section where it make sense
+
 Tasks:
 1. Detailed Analysis: key metrics, trends, and notable changes.
 2. Calculate & Interpret Key Ratios: Revenue Growth, Gross Margin %, Operating Margin, Net Profit Margin, EPS, ROE, ROA.
@@ -131,8 +119,8 @@ Tasks:
 4. Summary & Key Takeaways.
 5. Recommendations.
 6. Separate 10-K and 10-Q Analysis with clear headings.
+Create table and format it with Bold section where it makes sense.
 """
-    )
     response = openai_client.chat.completions.create(
         model="o3-mini-2025-01-31",
         messages=[
@@ -142,45 +130,60 @@ Tasks:
     )
     return response.choices[0].message.content
 
-# 7. Streamlit UI
+# ------------------------------------------------------------------------------
+# 4. UI: Sidebar & Layout
+# ------------------------------------------------------------------------------
+with st.sidebar:
+    st.title("🔍 Stock Selection")
+    ticker = st.text_input("Enter Ticker Symbol:", value="MSFT").upper().strip()
+    show_analysis = st.button("Generate Full Analysis")
 
-ticker = st.text_input(
-    "Enter Stock Ticker (e.g., MSFT, AAPL):",
-    value="MSFT"
-).upper().strip()
+if show_analysis:
+    st.markdown("## 📊 Company Overview")
+    try:
+        info = get_company_info(ticker)
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Revenue", f"${info.get('totalRevenue', 0)/1e9:.2f}B" if info.get("totalRevenue") else "N/A")
+        col2.metric("EPS", f"${info.get('forwardEps', 'N/A')}")
+        col3.metric("P/E Ratio", f"{info.get('forwardPE', 'N/A')}")
+    except:
+        st.warning("Could not retrieve overview metrics.")
 
-if st.button("Generate Analysis"):
-    client = init_openai_client()
+    # Tabs for structured view
+    tabs = st.tabs(["📈 Income Statement", "📄 SEC Filings", "🤖 GPT Commentary"])
 
-    with st.spinner("Fetching Income Statement..."):
-        income_df = get_income_statement(ticker)
+    with tabs[0]:
+        st.subheader("Income Statement (Raw)")
+        with st.spinner("Fetching Income Statement..."):
+            income_df = get_income_statement(ticker)
 
-    st.subheader("📊 Income Statement")
-    if income_df is None or income_df.empty:
-        st.error("No income statement data available.")
-        st.stop()
-    st.dataframe(income_df)
+        if income_df is None or income_df.empty:
+            st.error("No income statement data available.")
+        else:
+            st.dataframe(income_df)
+            st.subheader("Income Statement Trends")
+            plot_income_statement_trends(income_df, ticker)
 
-    with st.spinner("Downloading and Parsing SEC filings..."):
-        ten_k, ten_q = download_and_parse_filings(ticker)
+    with tabs[1]:
+        st.subheader("SEC Filings")
+        with st.spinner("Downloading and Parsing SEC filings..."):
+            ten_k, ten_q = download_and_parse_filings(ticker)
 
-    st.subheader("📈 Trends")
-    plot_income_statement_trends(income_df, ticker)
+        st.markdown("**Latest 10-K Filing (Preview)**")
+        st.text_area("10-K Content", ten_k[:5000], height=150)
+        st.markdown("**Latest 10-Q Filing (Preview)**")
+        st.text_area("10-Q Content", ten_q[:5000], height=150)
 
-    st.subheader("🗃️ SEC Filings Content (Preview)")
-    st.markdown("**Latest 10-K Filing:**")
-    st.text_area("10-K Content", ten_k[:5000], height=150)
-    st.markdown("**Latest 10-Q Filing:**")
-    st.text_area("10-Q Content", ten_q[:5000], height=150)
+    with tabs[2]:
+        st.subheader("GPT Analysis and Recommendations")
+        with st.spinner("Generating commentary with GPT..."):
+            commentary = get_chatgpt_commentary(client, income_df.to_string(), ten_k, ten_q, ticker)
+        st.markdown(commentary, unsafe_allow_html=True)
 
-    with st.spinner("Generating ChatGPT commentary..."):
-        commentary = get_chatgpt_commentary(
-            init_openai_client(),
-            income_df.to_string(),
-            ten_k,
-            ten_q,
-            ticker
-        )
-    st.subheader("🤖 ChatGPT Analysis")
-    st.markdown(commentary)
-
+    st.markdown("---")
+    st.markdown(
+        "<div style='text-align:center; font-size:0.8em; color:grey;'>"
+        "Built with Streamlit • Data from Yahoo Finance & SEC Edgar • Powered by OpenAI"
+        "</div>",
+        unsafe_allow_html=True
+    )
