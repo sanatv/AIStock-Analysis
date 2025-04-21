@@ -262,53 +262,53 @@ except Exception as e:
     st.warning(f"⚠️ Unable to fetch summary metrics: {e}")
 
 
-    # Tabs for structured view
-    tabs = st.tabs(["📈 Income Statement", "📊 Balance Sheet", "📄 SEC Filings", "🤖 AI Commentary"])
+   # Tabs for structured view
+tabs = st.tabs(["📈 Income Statement", "📊 Balance Sheet", "📄 SEC Filings", "🤖 AI Commentary"])
     
-    with tabs[0]:
-        st.subheader("Income Statement (Raw)")
-        with st.spinner("Fetching Income Statement..."):
-            income_df = get_income_statement(ticker)
+ with tabs[0]:
+	st.subheader("Income Statement (Raw)")
+	with st.spinner("Fetching Income Statement..."):
+		income_df = get_income_statement(ticker)
 
-        if income_df is None or income_df.empty:
-            st.error("No income statement data available.")
-        else:
-            st.dataframe(income_df)
-            st.subheader("Income Statement Trends")
-            plot_income_statement_trends(income_df, ticker)
-    with tabs[1]:
-        st.subheader("Balance Sheet (Raw)")
-        with st.spinner("Fetching Balance Sheet..."):
-            balance_df = get_balance_sheet(ticker)
+	if income_df is None or income_df.empty:
+		st.error("No income statement data available.")
+	else:
+		st.dataframe(income_df)
+		st.subheader("Income Statement Trends")
+		plot_income_statement_trends(income_df, ticker)
+with tabs[1]:
+	st.subheader("Balance Sheet (Raw)")
+	with st.spinner("Fetching Balance Sheet..."):
+		balance_df = get_balance_sheet(ticker)
 
-        if balance_df is None or balance_df.empty:
-            st.error("No balance sheet data available.")
-        else:
-            st.dataframe(balance_df)
-            st.subheader("Balance Sheet Trends")
-            plot_balance_trends(balance_df, ticker)
+	if balance_df is None or balance_df.empty:
+		st.error("No balance sheet data available.")
+	else:
+		st.dataframe(balance_df)
+		st.subheader("Balance Sheet Trends")
+		plot_balance_trends(balance_df, ticker)
 
 
-    with tabs[2]:
-        st.subheader("SEC Filings")
-        with st.spinner("Downloading and Parsing SEC filings..."):
-            ten_k, ten_q = download_and_parse_filings(ticker)
+with tabs[2]:
+	st.subheader("SEC Filings")
+	with st.spinner("Downloading and Parsing SEC filings..."):
+		ten_k, ten_q = download_and_parse_filings(ticker)
 
-        st.markdown("**Latest 10-K Filing (Preview)**")
-        st.text_area("10-K Content", ten_k[:5000], height=150)
-        st.markdown("**Latest 10-Q Filing (Preview)**")
-        st.text_area("10-Q Content", ten_q[:5000], height=150)
+	st.markdown("**Latest 10-K Filing (Preview)**")
+	st.text_area("10-K Content", ten_k[:5000], height=150)
+	st.markdown("**Latest 10-Q Filing (Preview)**")
+	st.text_area("10-Q Content", ten_q[:5000], height=150)
 
-    with tabs[3]:
-        st.subheader("AI Analysis and Recommendations")
-        with st.spinner("Generating commentary with AI..."):
-            commentary = get_chatgpt_commentary(client, income_df.to_string(), balance_df.to_string(),ten_k, ten_q, ticker)
-        st.markdown(commentary, unsafe_allow_html=True)
+with tabs[3]:
+	st.subheader("AI Analysis and Recommendations")
+	with st.spinner("Generating commentary with AI..."):
+		commentary = get_chatgpt_commentary(client, income_df.to_string(), balance_df.to_string(),ten_k, ten_q, ticker)
+	st.markdown(commentary, unsafe_allow_html=True)
 
-    st.markdown("---")
-    st.markdown(
-        "<div style='text-align:center; font-size:0.8em; color:grey;'>"
-        "Built with Streamlit • Data from Yahoo Finance & SEC Edgar • Powered by OpenAI • sanatv@gmail.com"
-        "</div>",
-        unsafe_allow_html=True
-    )
+st.markdown("---")
+st.markdown(
+	"<div style='text-align:center; font-size:0.8em; color:grey;'>"
+	"Built with Streamlit • Data from Yahoo Finance & SEC Edgar • Powered by OpenAI • sanatv@gmail.com"
+	"</div>",
+	unsafe_allow_html=True
+)
