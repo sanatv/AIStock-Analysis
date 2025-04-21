@@ -51,19 +51,19 @@ def get_balance_sheet(ticker: str) -> pd.DataFrame:
 # from fuzzywuzzy import process
 
 @st.cache_data(ttl=3600)
-def search_ticker_by_name(company_name: str) -> str:
-    """
-    Search for a stock ticker by partial or full company name using fuzzy matching.
-    """
-    # Preload a common list of companies
-    sp500 = pd.read_html("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")[0]
-    choices = dict(zip(sp500["Security"], sp500["Symbol"]))
+# def search_ticker_by_name(company_name: str) -> str:
+#     """
+#     Search for a stock ticker by partial or full company name using fuzzy matching.
+#     """
+#     # Preload a common list of companies
+#     sp500 = pd.read_html("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")[0]
+#     choices = dict(zip(sp500["Security"], sp500["Symbol"]))
 
-    # Fuzzy match against company names
-    match, score = process.extractOne(company_name, choices.keys())
-    ticker = choices.get(match)
+#     # Fuzzy match against company names
+#     match, score = process.extractOne(company_name, choices.keys())
+#     ticker = choices.get(match)
 
-    return ticker
+#     return ticker
 import requests
 
 def global_search_ticker(query: str):
