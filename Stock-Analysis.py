@@ -49,26 +49,7 @@ def get_balance_sheet(ticker: str) -> pd.DataFrame:
     stock = yf.Ticker(ticker)
     return stock.balance_sheet
 
-
-# @st.cache_data(show_spinner=False, ttl=60 * 60)
-# def get_company_info(ticker: str):
-#     return yf.Ticker(ticker).info
-# from fuzzywuzzy import process
-
 @st.cache_data(ttl=3600)
-# def search_ticker_by_name(company_name: str) -> str:
-#     """
-#     Search for a stock ticker by partial or full company name using fuzzy matching.
-#     """
-#     # Preload a common list of companies
-#     sp500 = pd.read_html("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")[0]
-#     choices = dict(zip(sp500["Security"], sp500["Symbol"]))
-
-#     # Fuzzy match against company names
-#     match, score = process.extractOne(company_name, choices.keys())
-#     ticker = choices.get(match)
-
-#     return ticker
 
 def global_search_ticker(query: str):
     url = "https://query2.finance.yahoo.com/v1/finance/search"
@@ -126,9 +107,6 @@ def clean_financial_dataframe(df: pd.DataFrame, label: str = "") -> pd.DataFrame
     df.index.name = f"{label} Line Item"
     return df
 
-
-
-
 # SEC Downloader setup
 dl = Downloader("Your Company Name", "your-email@example.com")
 
@@ -174,7 +152,6 @@ def get_realtime_price(ticker: str):
         return None, None, None
 
 import altair as alt
-
 
 @st.cache_data(ttl=600)
 def get_chart_data(ticker: str, range_key: str) -> pd.DataFrame:
@@ -232,9 +209,6 @@ def plot_chart_with_range(ticker: str, range_key: str):
 
     st.altair_chart(chart, use_container_width=True)
 
-
-
-
 def display_company_metrics(ticker: str):
     try:
         ticker_obj = yf.Ticker(ticker)
@@ -280,6 +254,48 @@ def display_company_metrics(ticker: str):
     except Exception as e:
         st.warning(f"⚠️ Unable to display company metrics: {e}")
 
+def add_yoy_change(df: pd.DataFrame) -> pd.DataFrame:
+    if df.shape[1] < 2:
+        return df  # Not enough periods to compare
+
+    # Parse numeric from string and compute % change from last two periods
+    def parse_num(x):
+        if isinstance(x, str) and x.startswith("$"):
+            return float(x.replace("$", "").replace("B", "").replace(",", ""))
+        return x
+
+    numeric_df = df.applymap(parse_num)
+
+    # Compute change between most recent and previous column
+    col_latest, col_prev = numeric_df.columns[:2]
+    df["YoY Change"] = numeric_df[col_latest].subtract(numeric_df[col_prev]) \
+        .divide(numeric_df[col_prev]) \
+        .apply(lambda x: f"{x*100:.2f}%" if pd.notna(x) else "N/A")
+
+    return df
+def highlight_growth(val):
+    if isinstance(val, str) and "%" in val:
+        try:
+            v = float(val.replace("%", ""))
+            if v > 0:
+                return "color: green"
+            elif v < 0:
+                return "color: red"
+        except:
+            return ""
+    return ""
+
+styled = formatted_bal.style.applymap(highlight_growth, subset=["YoY Change"])
+st.dataframe(styled, use_container_width=True)
+
+def download_button(df: pd.DataFrame, filename: str):
+    csv_data = df.to_csv().encode('utf-8')
+    st.download_button(
+        label=f"📥 Download {filename}",
+        data=csv_data,
+        file_name=f"{filename}.csv",
+        mime="text/csv"
+    )
 
 @st.cache_data(show_spinner=False)
 def plot_income_statement_trends(income: pd.DataFrame, ticker: str) -> None:
@@ -365,8 +381,6 @@ Create table and format it with Bold section where it makes sense.
     )
 
     return response.choices[0].message.content
-
-
 # ------------------------------------------------------------------------------
 # 4. UI: Sidebar & Layout
 # ------------------------------------------------------------------------------
@@ -402,8 +416,6 @@ with st.sidebar:
 	if ticker:
 	    st.success(f"✅ Resolved Ticker: `{ticker}`")
 
-
-
 display_company_metrics(ticker)
 st.markdown("## 📉 Stock Price Chart")
 
@@ -411,39 +423,6 @@ range_options = ["1D", "5D", "1M", "3M", "6M", "YTD", "1Y", "5Y", "MAX"]
 selected_range = st.selectbox("Select Time Range:", range_options, index=6)  # default = 1Y
 
 plot_chart_with_range(ticker, selected_range)
-
-
-# plot_1d_price_chart(ticker)
-
-
-# if show_analysis:
-#     st.markdown("## 📊 Company Overview")
-# try:
-#     ticker_obj = yf.Ticker(ticker)
-#     fast_info = ticker_obj.fast_info or {}
-#     full_info = ticker_obj.info or {}
-
-#     # Smart Fallbacks
-#     market_cap = fast_info.get("market_cap") or full_info.get("marketCap")
-#     pe_ratio   = fast_info.get("pe_ratio")   or full_info.get("forwardPE")
-#     eps        = full_info.get("forwardEps") or full_info.get("trailingEps")
-#     dividend_yield = fast_info.get("dividend_yield") or full_info.get("dividendYield")
-#     year_high  = fast_info.get("year_high") or full_info.get("fiftyTwoWeekHigh")
-
-#     # Display in top row
-#     col1, col2, col3 = st.columns(3)
-#     col1.metric("📦 Market Cap", f"${market_cap/1e9:.2f}B" if market_cap else "N/A")
-#     col2.metric("📊 EPS", f"${eps:.2f}" if eps else "N/A")
-#     col3.metric("📈 P/E Ratio", f"{pe_ratio:.2f}" if pe_ratio else "N/A")
-
-#     # # Optional extra metrics row
-#     col4, col5 = st.columns(2)
-#     col4.metric("💸 Dividend Yield", f"{dividend_yield:.2f}%" if dividend_yield else "N/A")
-#     col5.metric("🔺 52W High", f"${year_high:.2f}" if year_high else "N/A")
-
-# except Exception as e:
-#     st.warning(f"⚠️ Unable to fetch summary metrics: {e}")
-
 
    # Tabs for structured view
 tabs = st.tabs(["📈 Income Statement", "📊 Balance Sheet", "📄 SEC Filings", "🤖 AI Commentary","💬 Company Chatbot"])
@@ -457,7 +436,9 @@ with tabs[0]:
 	    st.warning("No income statement data available for this company.")
 	else:
 	    formatted_income = clean_financial_dataframe(income_df, "Income")
+	    formatted_income = add_yoy_change(formatted_income)
 	    st.dataframe(formatted_income, use_container_width=True)
+	    download_button(formatted_income, f"{ticker}_income_statement")
 	    plot_income_statement_trends(income_df, ticker)
 with tabs[1]:
 	st.subheader("Balance Sheet (Raw)")
@@ -468,7 +449,10 @@ with tabs[1]:
 	    st.warning("No balance sheet data available.")
 	else:
 	    formatted_bal = clean_financial_dataframe(balance_df, "Balance")
+	    formatted_bal = add_yoy_change(formatted_bal)
 	    st.dataframe(formatted_bal, use_container_width=True)
+	    download_button(formatted_bal, f"{ticker}_balance_sheet")
+
 
 	    st.subheader("Balance Sheet Trends")
 	    plot_balance_trends(balance_df, ticker)
