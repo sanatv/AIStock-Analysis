@@ -501,7 +501,7 @@ with tabs[3]:
 
             st.markdown(commentary, unsafe_allow_html=True)
 
-		st.download_button(
+	    st.download_button(
 		    label="📥 Download AI Commentary as PDF",
 		    data=generate_pdf_from_markdown(commentary),
 		    file_name=f"{ticker}_AI_Commentary.pdf",
