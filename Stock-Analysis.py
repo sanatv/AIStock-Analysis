@@ -131,6 +131,48 @@ def download_and_parse_filings(ticker):
         filing_texts["10-K"] = filing_texts["10-Q"] = f"Error: {e}"
 
     return filing_texts.get("10-K", ""), filing_texts.get("10-Q", "")
+def display_company_metrics(ticker: str):
+    try:
+        ticker_obj = yf.Ticker(ticker)
+        fast_info = ticker_obj.fast_info or {}
+        full_info = ticker_obj.info or {}
+
+        # Smart fallback with safe defaults
+        market_cap = fast_info.get("market_cap") or full_info.get("marketCap") or 0
+        pe_ratio = fast_info.get("pe_ratio") or full_info.get("forwardPE")
+        eps = full_info.get("forwardEps") or full_info.get("trailingEps")
+        dividend_yield = fast_info.get("dividend_yield") or full_info.get("dividendYield")
+        year_high = fast_info.get("year_high") or full_info.get("fiftyTwoWeekHigh")
+
+        # Realtime price
+        current_price, change, pct = get_realtime_price(ticker)
+        arrow = "🔺" if change and change >= 0 else "🔻"
+        color = "green" if change and change >= 0 else "red"
+
+        # Display Metrics
+        st.markdown("## 📊 Company Metrics & Real-Time Price")
+        col1, col2, col3, col4, col5, col6 = st.columns(6)
+
+        col1.metric("📦 Market Cap", f"${market_cap/1e9:.2f}B" if market_cap else "N/A")
+        col2.metric("📊 EPS", f"${eps:.2f}" if eps else "N/A")
+        col3.metric("📈 P/E Ratio", f"{pe_ratio:.2f}" if pe_ratio else "N/A")
+        col4.metric("💸 Dividend Yield", f"{dividend_yield*100:.2f}%" if dividend_yield else "N/A")
+        col5.metric("🔺 52W High", f"${year_high:.2f}" if year_high else "N/A")
+
+        if current_price is not None:
+            col6.markdown(
+                f"""
+                <div style='font-size:1.3em; color:{color}; font-weight:bold;'>
+                    ${current_price} {arrow}<br/>({change}, {pct}%)
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+        else:
+            col6.metric("Price", "N/A")
+
+    except Exception as e:
+        st.warning(f"⚠️ Unable to display company metrics: {e}")
 
 @st.cache_data(show_spinner=False)
 def plot_income_statement_trends(income: pd.DataFrame, ticker: str) -> None:
@@ -238,34 +280,35 @@ with st.sidebar:
 
 
     show_analysis = st.button("Generate Full Analysis")
+display_company_metrics(ticker)
 
-if show_analysis:
-    st.markdown("## 📊 Company Overview")
-try:
-    ticker_obj = yf.Ticker(ticker)
-    fast_info = ticker_obj.fast_info or {}
-    full_info = ticker_obj.info or {}
+# if show_analysis:
+#     st.markdown("## 📊 Company Overview")
+# try:
+#     ticker_obj = yf.Ticker(ticker)
+#     fast_info = ticker_obj.fast_info or {}
+#     full_info = ticker_obj.info or {}
 
-    # Smart Fallbacks
-    market_cap = fast_info.get("market_cap") or full_info.get("marketCap")
-    pe_ratio   = fast_info.get("pe_ratio")   or full_info.get("forwardPE")
-    eps        = full_info.get("forwardEps") or full_info.get("trailingEps")
-    dividend_yield = fast_info.get("dividend_yield") or full_info.get("dividendYield")
-    year_high  = fast_info.get("year_high") or full_info.get("fiftyTwoWeekHigh")
+#     # Smart Fallbacks
+#     market_cap = fast_info.get("market_cap") or full_info.get("marketCap")
+#     pe_ratio   = fast_info.get("pe_ratio")   or full_info.get("forwardPE")
+#     eps        = full_info.get("forwardEps") or full_info.get("trailingEps")
+#     dividend_yield = fast_info.get("dividend_yield") or full_info.get("dividendYield")
+#     year_high  = fast_info.get("year_high") or full_info.get("fiftyTwoWeekHigh")
 
-    # Display in top row
-    col1, col2, col3 = st.columns(3)
-    col1.metric("📦 Market Cap", f"${market_cap/1e9:.2f}B" if market_cap else "N/A")
-    col2.metric("📊 EPS", f"${eps:.2f}" if eps else "N/A")
-    col3.metric("📈 P/E Ratio", f"{pe_ratio:.2f}" if pe_ratio else "N/A")
+#     # Display in top row
+#     col1, col2, col3 = st.columns(3)
+#     col1.metric("📦 Market Cap", f"${market_cap/1e9:.2f}B" if market_cap else "N/A")
+#     col2.metric("📊 EPS", f"${eps:.2f}" if eps else "N/A")
+#     col3.metric("📈 P/E Ratio", f"{pe_ratio:.2f}" if pe_ratio else "N/A")
 
-    # # Optional extra metrics row
-    col4, col5 = st.columns(2)
-    col4.metric("💸 Dividend Yield", f"{dividend_yield:.2f}%" if dividend_yield else "N/A")
-    col5.metric("🔺 52W High", f"${year_high:.2f}" if year_high else "N/A")
+#     # # Optional extra metrics row
+#     col4, col5 = st.columns(2)
+#     col4.metric("💸 Dividend Yield", f"{dividend_yield:.2f}%" if dividend_yield else "N/A")
+#     col5.metric("🔺 52W High", f"${year_high:.2f}" if year_high else "N/A")
 
-except Exception as e:
-    st.warning(f"⚠️ Unable to fetch summary metrics: {e}")
+# except Exception as e:
+#     st.warning(f"⚠️ Unable to fetch summary metrics: {e}")
 
 
    # Tabs for structured view
