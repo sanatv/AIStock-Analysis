@@ -181,49 +181,46 @@ def display_company_metrics(ticker: str):
         fast_info = ticker_obj.fast_info or {}
         full_info = ticker_obj.info or {}
 
-        # Smart fallback with safe defaults
         market_cap = fast_info.get("market_cap") or full_info.get("marketCap") or 0
         pe_ratio = fast_info.get("pe_ratio") or full_info.get("forwardPE")
         eps = full_info.get("forwardEps") or full_info.get("trailingEps")
         dividend_yield = fast_info.get("dividend_yield") or full_info.get("dividendYield")
         year_high = fast_info.get("year_high") or full_info.get("fiftyTwoWeekHigh")
 
-        # Realtime price
         current_price, change, pct = get_realtime_price(ticker)
         arrow = "🔺" if change and change >= 0 else "🔻"
         color = "green" if change and change >= 0 else "red"
 
-	st.markdown("## 📊 Company Metrics & Real-Time Price")
-	
-	row1 = st.columns(3)
-	row2 = st.columns(3)
-	
-	row1[0].metric("📦 Market Cap", f"${market_cap/1e9:.2f}B" if market_cap else "N/A")
-	row1[1].metric("📊 EPS", f"${eps:.2f}" if eps else "N/A")
-	row1[2].metric("📈 P/E Ratio", f"{pe_ratio:.2f}" if pe_ratio else "N/A")
-	
-	row2[0].metric("💸 Dividend Yield", f"{dividend_yield*100:.2f}%" if dividend_yield else "N/A")
-	row2[1].metric("🔺 52W High", f"${year_high:.2f}" if year_high else "N/A")
-	
-	# Real-time stock price + sparkline
-	if current_price is not None:
-	    df = get_1d_price_data(ticker)
-	    if df is not None and not df.empty:
-	        row2[2].line_chart(df.set_index("Datetime")["Close"], height=100)
-	    row2[2].markdown(
-	        f"""
-	        <div style='font-size:1em; color:{color}; font-weight:bold;'>
-	            ${current_price} {arrow}<br/>({change}, {pct}%)
-	        </div>
-	        """,
-	        unsafe_allow_html=True
-	    )
-	else:
-	    row2[2].metric("Price", "N/A")
+        # 👇 Insert new layout here
+        st.markdown("## 📊 Company Metrics & Real-Time Price")
+        row1 = st.columns(3)
+        row2 = st.columns(3)
 
+        row1[0].metric("📦 Market Cap", f"${market_cap/1e9:.2f}B" if market_cap else "N/A")
+        row1[1].metric("📊 EPS", f"${eps:.2f}" if eps else "N/A")
+        row1[2].metric("📈 P/E Ratio", f"{pe_ratio:.2f}" if pe_ratio else "N/A")
+
+        row2[0].metric("💸 Dividend Yield", f"{dividend_yield*100:.2f}%" if dividend_yield else "N/A")
+        row2[1].metric("🔺 52W High", f"${year_high:.2f}" if year_high else "N/A")
+
+        if current_price is not None:
+            df = get_1d_price_data(ticker)
+            if df is not None and not df.empty:
+                row2[2].line_chart(df.set_index("Datetime")["Close"], height=100)
+            row2[2].markdown(
+                f"""
+                <div style='font-size:1em; color:{color}; font-weight:bold;'>
+                    ${current_price} {arrow}<br/>({change}, {pct}%)
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+        else:
+            row2[2].metric("Price", "N/A")
 
     except Exception as e:
         st.warning(f"⚠️ Unable to display company metrics: {e}")
+
 
 @st.cache_data(show_spinner=False)
 def plot_income_statement_trends(income: pd.DataFrame, ticker: str) -> None:
