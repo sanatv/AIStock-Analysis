@@ -379,9 +379,6 @@ Create table and format it with Bold section where it makes sense.
 
     return response.choices[0].message.content
 
-import pdfkit
-import tempfile
-
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import io
