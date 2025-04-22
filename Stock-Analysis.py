@@ -379,26 +379,33 @@ Create table and format it with Bold section where it makes sense.
 
     return response.choices[0].message.content
 
-import markdown2
-from weasyprint import HTML
-import tempfile
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+import io
 
-def generate_pdf_from_markdown(md_content: str) -> bytes:
-    # Convert markdown to HTML
-    html_content = markdown2.markdown(md_content)
+def generate_pdf_from_markdown(commentary: str) -> bytes:
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
 
-    # Write to temp HTML file and convert to PDF
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".html") as html_file:
-        html_file.write(html_content.encode("utf-8"))
-        html_path = html_file.name
+    # Set up starting point
+    text_object = c.beginText(40, 750)
+    text_object.setFont("Helvetica", 10)
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as pdf_file:
-        HTML(html_path).write_pdf(pdf_file.name)
-        pdf_path = pdf_file.name
+    for line in commentary.splitlines():
+        if text_object.getY() < 50:  # Start a new page if at the bottom
+            c.drawText(text_object)
+            c.showPage()
+            text_object = c.beginText(40, 750)
+            text_object.setFont("Helvetica", 10)
+        text_object.textLine(line.strip())
 
-    # Read and return as bytes for Streamlit download
-    with open(pdf_path, "rb") as f:
-        return f.read()
+    c.drawText(text_object)
+    c.showPage()
+    c.save()
+
+    buffer.seek(0)
+    return buffer.read()
+
 
 # ------------------------------------------------------------------------------
 # 4. UI: Sidebar & Layout
@@ -505,7 +512,6 @@ with tabs[3]:
                 ten_q,
                 ticker
             )
-
             st.markdown(commentary, unsafe_allow_html=True)
 
             st.download_button(
@@ -514,9 +520,9 @@ with tabs[3]:
                 file_name=f"{ticker}_AI_Commentary.pdf",
                 mime="application/pdf"
             )
-
     else:
         st.info("👈 Click the button above to generate AI commentary based on financials.")
+
 
 
 # 👇 Chat context
