@@ -436,7 +436,7 @@ with tabs[0]:
 	    formatted_income = add_yoy_change(formatted_income)
 	    st.dataframe(formatted_income, use_container_width=True)
 	    download_button(formatted_income, f"{ticker}_income_statement")
-	    styled = formatted_bal.style.applymap(highlight_growth, subset=["YoY Change"])
+	    styled = formatted_income.style.applymap(highlight_growth, subset=["YoY Change"])
 	    st.dataframe(styled, use_container_width=True)
 	    plot_income_statement_trends(income_df, ticker)
 with tabs[1]:
