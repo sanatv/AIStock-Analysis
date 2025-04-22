@@ -499,20 +499,23 @@ with tabs[2]:
 	st.text_area("10-Q Content", ten_q[:5000], height=150)
 
 with tabs[3]:
-	st.subheader("AI Analysis and Recommendations")
-	with st.spinner("Generating commentary with AI..."):
-		commentary = get_chatgpt_commentary(client, income_df.to_string(), balance_df.to_string(),ten_k, ten_q, ticker)
-	st.markdown(commentary, unsafe_allow_html=True)
-	st.subheader("📄 Downloadable AI Report")
-	
-	pdf_data = generate_pdf_from_text(commentary)
-	
-	st.download_button(
-	    label="📥 Download AI Commentary as PDF",
-	    data=pdf_data,
-	    file_name=f"{ticker}_AI_Commentary.pdf",
-	    mime="application/pdf"
-	)
+    st.subheader("🤖 AI Analysis and Recommendations")
+
+    if st.button("🧠 Generate AI Commentary"):
+        with st.spinner("Generating commentary with AI..."):
+            commentary = get_chatgpt_commentary(client, income_df.to_string(), balance_df.to_string(), ten_k, ten_q, ticker)
+
+            st.markdown(commentary, unsafe_allow_html=True)
+
+            # Optional: PDF download button
+            st.download_button(
+                label="📥 Download AI Commentary as PDF",
+                data=generate_pdf_from_text(commentary),
+                file_name=f"{ticker}_AI_Commentary.pdf",
+                mime="application/pdf"
+            )
+    else:
+        st.info("👈 Click the button above to generate AI commentary based on financials.")
 
 # 👇 Chat context
 company_context = f"""
