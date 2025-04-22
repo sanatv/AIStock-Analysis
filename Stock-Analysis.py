@@ -434,10 +434,10 @@ with tabs[0]:
 	else:
 	    formatted_income = clean_financial_dataframe(income_df, "Income")
 	    formatted_income = add_yoy_change(formatted_income)
-	    st.dataframe(formatted_income, use_container_width=True)
-	    download_button(formatted_income, f"{ticker}_income_statement")
+	    # st.dataframe(formatted_income, use_container_width=True)
 	    styled = formatted_income.style.applymap(highlight_growth, subset=["YoY Change"])
 	    st.dataframe(styled, use_container_width=True)
+	    download_button(formatted_income, f"{ticker}_income_statement")
 	    plot_income_statement_trends(income_df, ticker)
 with tabs[1]:
 	st.subheader("Balance Sheet (Raw)")
@@ -449,10 +449,11 @@ with tabs[1]:
 	else:
 	    formatted_bal = clean_financial_dataframe(balance_df, "Balance")
 	    formatted_bal = add_yoy_change(formatted_bal)
-	    st.dataframe(formatted_bal, use_container_width=True)
-	    download_button(formatted_bal, f"{ticker}_balance_sheet")
+	    # st.dataframe(formatted_bal, use_container_width=True)
+	    
 	    styled = formatted_bal.style.applymap(highlight_growth, subset=["YoY Change"])
 	    st.dataframe(styled, use_container_width=True)
+	    download_button(formatted_bal, f"{ticker}_balance_sheet")
 
 
 	    st.subheader("Balance Sheet Trends")
