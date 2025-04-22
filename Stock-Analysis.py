@@ -72,34 +72,38 @@ def get_balance_sheet(ticker: str) -> pd.DataFrame:
 
 def global_search_ticker(query: str):
     url = "https://query2.finance.yahoo.com/v1/finance/search"
-    params = {"q": query, "quotes_count": 5, "news_count": 0}
-    headers = {
-        "User-Agent": "Mozilla/5.0"
-    }
+    params = {"q": query, "quotes_count": 10, "news_count": 0}
+    headers = {"User-Agent": "Mozilla/5.0"}
 
     try:
         response = requests.get(url, params=params, headers=headers, timeout=10)
-        if response.status_code == 200:
-            data = response.json()
-
-            # DEBUG: Uncomment if needed
-            # st.json(data)  # see raw response
-
-            results = []
-            for item in data.get("quotes", []):
-                if item.get("quoteType") in ["EQUITY", "ETF"] and "symbol" in item:
-                    results.append({
-                        "symbol": item["symbol"],
-                        "shortname": item.get("shortname", ""),
-                        "exchange": item.get("exchange", ""),
-                        "type": item.get("quoteType", "")
-                    })
-            return results
-        else:
-            st.error(f"Yahoo API returned status {response.status_code}")
+        if response.status_code != 200:
             return []
+
+        data = response.json()
+        results = []
+
+        for item in data.get("quotes", []):
+            if "symbol" not in item or item.get("quoteType") not in ["EQUITY", "ETF"]:
+                continue
+
+            result = {
+                "symbol": item["symbol"],
+                "shortname": item.get("shortname", ""),
+                "exchange": item.get("exchange", ""),
+                "type": item.get("quoteType", "")
+            }
+
+            results.append(result)
+
+        # 🧠 Prioritize US tickers (e.g. NMS = NASDAQ, NYQ = NYSE)
+        prioritized = [r for r in results if r["exchange"] in ["NMS", "NYQ"]]
+        others = [r for r in results if r not in prioritized]
+
+        return prioritized + others
+
     except Exception as e:
-        st.error(f"Error fetching ticker: {e}")
+        st.error(f"Ticker search error: {e}")
         return []
 
 
