@@ -131,6 +131,22 @@ def download_and_parse_filings(ticker):
         filing_texts["10-K"] = filing_texts["10-Q"] = f"Error: {e}"
 
     return filing_texts.get("10-K", ""), filing_texts.get("10-Q", "")
+
+@st.cache_data(ttl=60)
+def get_realtime_price(ticker: str):
+    try:
+        stock = yf.Ticker(ticker)
+        data = stock.history(period="1d", interval="1m")
+        if data.empty:
+            return None, None, None
+        current_price = data["Close"].iloc[-1]
+        previous_close = data["Close"].iloc[0]
+        change = current_price - previous_close
+        percent_change = (change / previous_close) * 100
+        return round(current_price, 2), round(change, 2), round(percent_change, 2)
+    except:
+        return None, None, None
+
 def display_company_metrics(ticker: str):
     try:
         ticker_obj = yf.Ticker(ticker)
