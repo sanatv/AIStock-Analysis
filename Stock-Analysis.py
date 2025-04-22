@@ -172,7 +172,7 @@ def display_company_metrics(ticker: str):
         col1.metric("📦 Market Cap", f"${market_cap/1e9:.2f}B" if market_cap else "N/A")
         col2.metric("📊 EPS", f"${eps:.2f}" if eps else "N/A")
         col3.metric("📈 P/E Ratio", f"{pe_ratio:.2f}" if pe_ratio else "N/A")
-        col4.metric("💸 Dividend Yield", f"{dividend_yield*100:.2f}%" if dividend_yield else "N/A")
+        col4.metric("💸 Dividend Yield", f"{dividend_yield:.2f}%" if dividend_yield else "N/A")
         col5.metric("🔺 52W High", f"${year_high:.2f}" if year_high else "N/A")
 
         if current_price is not None:
