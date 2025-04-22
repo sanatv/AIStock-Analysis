@@ -149,57 +149,63 @@ def get_realtime_price(ticker: str):
 
 import altair as alt
 
-@st.cache_data(ttl=60)
-def get_1d_price_data(ticker: str) -> pd.DataFrame:
+
+@st.cache_data(ttl=600)
+def get_chart_data(ticker: str, range_key: str) -> pd.DataFrame:
+    interval_map = {
+        "1D": "5m",
+        "5D": "15m",
+        "1M": "1h",
+        "3M": "1d",
+        "6M": "1d",
+        "YTD": "1d",
+        "1Y": "1d",
+        "5Y": "1wk",
+        "MAX": "1mo"
+    }
+
+    today = pd.Timestamp.today()
+    start_map = {
+        "1D": today - pd.Timedelta(days=1),
+        "5D": today - pd.Timedelta(days=5),
+        "1M": today - pd.DateOffset(months=1),
+        "3M": today - pd.DateOffset(months=3),
+        "6M": today - pd.DateOffset(months=6),
+        "YTD": pd.Timestamp(year=today.year, month=1, day=1),
+        "1Y": today - pd.DateOffset(years=1),
+        "5Y": today - pd.DateOffset(years=5),
+        "MAX": pd.Timestamp("1990-01-01")  # fallback for full history
+    }
+
+    interval = interval_map[range_key]
+    start_date = start_map[range_key]
+
     stock = yf.Ticker(ticker)
-    df = stock.history(period="1d", interval="5m")
+    df = stock.history(start=start_date, interval=interval)
     df = df.reset_index()
-    return df[["Datetime", "Close"]]
-
-@st.cache_data(ttl=3600)
-def get_lifetime_price_data(ticker: str) -> pd.DataFrame:
-    stock = yf.Ticker(ticker)
-    df = stock.history(period="max", interval="1d")
-    df = df.reset_index()
-    return df[["Date", "Close"]]
-
-
-def plot_1d_price_chart(ticker: str):
-    df = get_1d_price_data(ticker)
-    if df is None or df.empty:
-        st.warning("⚠️ No intraday price data available.")
-        return
-
-    chart = alt.Chart(df).mark_line(color="steelblue").encode(
-        x=alt.X("Datetime:T", title="Time"),
-        y=alt.Y("Close:Q", title="Price ($)"),
-        tooltip=["Datetime:T", "Close:Q"]
-    ).properties(
-        title=f"{ticker} - Intraday Price Trend",
-        width="container",
-        height=300
-    ).interactive()
-
-    st.altair_chart(chart, use_container_width=True)
+    return df[["Date", "Close"]] if "Date" in df.columns else df[["Datetime", "Close"]]
 
 import altair as alt
 
-def plot_lifetime_chart(ticker: str):
-    df = get_lifetime_price_data(ticker)
+def plot_chart_with_range(ticker: str, range_key: str):
+    df = get_chart_data(ticker, range_key)
     if df.empty:
-        st.warning("⚠️ No historical price data found.")
+        st.warning("⚠️ No chart data available for selected range.")
         return
 
+    x_field = "Datetime" if "Datetime" in df.columns else "Date"
+
     chart = alt.Chart(df).mark_line(color="steelblue").encode(
-        x=alt.X("Date:T", title="Date"),
+        x=alt.X(f"{x_field}:T", title="Date"),
         y=alt.Y("Close:Q", title="Price ($)"),
-        tooltip=["Date:T", "Close:Q"]
+        tooltip=[f"{x_field}:T", "Close:Q"]
     ).properties(
-        title=f"{ticker} – Lifetime Price Chart",
+        title=f"{ticker} – {range_key} Price Trend",
         height=350
     ).interactive()
 
     st.altair_chart(chart, use_container_width=True)
+
 
 
 
@@ -358,7 +364,12 @@ with st.sidebar:
 
 
 display_company_metrics(ticker)
-plot_lifetime_chart(ticker)
+st.markdown("## 📉 Stock Price Chart")
+
+range_options = ["1D", "5D", "1M", "3M", "6M", "YTD", "1Y", "5Y", "MAX"]
+selected_range = st.selectbox("Select Time Range:", range_options, index=6)  # default = 1Y
+
+plot_chart_with_range(ticker, selected_range)
 
 
 # plot_1d_price_chart(ticker)
