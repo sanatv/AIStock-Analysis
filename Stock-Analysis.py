@@ -106,6 +106,30 @@ def global_search_ticker(query: str):
         st.error(f"Ticker search error: {e}")
         return []
 
+def format_financials(df: pd.DataFrame, statement_type: str = "Income") -> pd.DataFrame:
+    if df is None or df.empty:
+        return pd.DataFrame()
+
+    # Transpose so rows = dates, columns = line items
+    df = df.T.reset_index().rename(columns={"index": "Line Item"})
+
+    # Format dates
+    df.columns = [col.strftime("%b %Y") if isinstance(col, pd.Timestamp) else col for col in df.columns]
+
+    # Optional: Clean line item names
+    df["Line Item"] = df["Line Item"].str.replace("_", " ").str.title()
+
+    # Format numbers: $ in billions (optional)
+    for col in df.columns[1:]:
+        df[col] = df[col].apply(lambda x: f"${x/1e9:,.2f}B" if isinstance(x, (int, float)) else x)
+
+    df = df.set_index("Line Item")
+
+    # Optional: Add sections for income statement
+    if statement_type.lower() == "income":
+        df = df.loc[[i for i in df.index if any(k in i.lower() for k in ["revenue", "income", "expenses", "eps"])]]
+
+    return df
 
 
 # SEC Downloader setup
@@ -435,7 +459,9 @@ with tabs[0]:
 	if income_df is None or income_df.empty:
 		st.error("No income statement data available.")
 	else:
-		st.dataframe(income_df)
+		formatted_income = format_financials(income_df, "Income")
+		st.dataframe(formatted_income)
+
 		st.subheader("Income Statement Trends")
 		plot_income_statement_trends(income_df, ticker)
 with tabs[1]:
@@ -446,7 +472,9 @@ with tabs[1]:
 	if balance_df is None or balance_df.empty:
 		st.error("No balance sheet data available.")
 	else:
-		st.dataframe(balance_df)
+		formatted_bal = format_financials(balance_df, "Balance")
+		st.dataframe(formatted_bal)
+
 		st.subheader("Balance Sheet Trends")
 		plot_balance_trends(balance_df, ticker)
 
