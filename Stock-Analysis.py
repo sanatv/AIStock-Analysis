@@ -156,6 +156,14 @@ def get_1d_price_data(ticker: str) -> pd.DataFrame:
     df = df.reset_index()
     return df[["Datetime", "Close"]]
 
+@st.cache_data(ttl=3600)
+def get_lifetime_price_data(ticker: str) -> pd.DataFrame:
+    stock = yf.Ticker(ticker)
+    df = stock.history(period="max", interval="1d")
+    df = df.reset_index()
+    return df[["Date", "Close"]]
+
+
 def plot_1d_price_chart(ticker: str):
     df = get_1d_price_data(ticker)
     if df is None or df.empty:
@@ -173,6 +181,26 @@ def plot_1d_price_chart(ticker: str):
     ).interactive()
 
     st.altair_chart(chart, use_container_width=True)
+
+import altair as alt
+
+def plot_lifetime_chart(ticker: str):
+    df = get_lifetime_price_data(ticker)
+    if df.empty:
+        st.warning("⚠️ No historical price data found.")
+        return
+
+    chart = alt.Chart(df).mark_line(color="steelblue").encode(
+        x=alt.X("Date:T", title="Date"),
+        y=alt.Y("Close:Q", title="Price ($)"),
+        tooltip=["Date:T", "Close:Q"]
+    ).properties(
+        title=f"{ticker} – Lifetime Price Chart",
+        height=350
+    ).interactive()
+
+    st.altair_chart(chart, use_container_width=True)
+
 
 
 def display_company_metrics(ticker: str):
@@ -204,9 +232,9 @@ def display_company_metrics(ticker: str):
         row2[1].metric("🔺 52W High", f"${year_high:.2f}" if year_high else "N/A")
 
         if current_price is not None:
-            df = get_1d_price_data(ticker)
+            # df = get_1d_price_data(ticker)
             if df is not None and not df.empty:
-                row2[2].line_chart(df.set_index("Datetime")["Close"], height=100)
+                # row2[2].line_chart(df.set_index("Datetime")["Close"], height=100)
             row2[2].markdown(
                 f"""
                 <div style='font-size:1em; color:{color}; font-weight:bold;'>
@@ -331,7 +359,10 @@ with st.sidebar:
 
 
 display_company_metrics(ticker)
-plot_1d_price_chart(ticker)
+plot_lifetime_chart(ticker)
+
+
+# plot_1d_price_chart(ticker)
 
 
 # if show_analysis:
