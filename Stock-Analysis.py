@@ -113,23 +113,31 @@ def format_financials(df: pd.DataFrame, statement_type: str = "Income") -> pd.Da
     # Transpose so rows = dates, columns = line items
     df = df.T.reset_index().rename(columns={"index": "Line Item"})
 
-    # Format dates
-    df.columns = [col.strftime("%b %Y") if isinstance(col, pd.Timestamp) else col for col in df.columns]
-
-    # Optional: Clean line item names
+    # Ensure Line Item is string type
+    df["Line Item"] = df["Line Item"].astype(str)
     df["Line Item"] = df["Line Item"].str.replace("_", " ").str.title()
 
-    # Format numbers: $ in billions (optional)
+    # Format date columns
+    df.columns = [
+        col.strftime("%b %Y") if isinstance(col, pd.Timestamp) else col
+        for col in df.columns
+    ]
+
+    # Format numbers: convert to billions, add $
     for col in df.columns[1:]:
-        df[col] = df[col].apply(lambda x: f"${x/1e9:,.2f}B" if isinstance(x, (int, float)) else x)
+        df[col] = df[col].apply(
+            lambda x: f"${x/1e9:,.2f}B" if isinstance(x, (int, float)) else x
+        )
 
     df = df.set_index("Line Item")
 
-    # Optional: Add sections for income statement
+    # Optional filter: keep key lines for income statement
     if statement_type.lower() == "income":
-        df = df.loc[[i for i in df.index if any(k in i.lower() for k in ["revenue", "income", "expenses", "eps"])]]
+        df = df.loc[[i for i in df.index if any(k in i.lower() for k in [
+            "revenue", "income", "expenses", "eps"])]]  # filter essentials
 
     return df
+
 
 
 # SEC Downloader setup
