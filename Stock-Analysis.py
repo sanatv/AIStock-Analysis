@@ -106,37 +106,26 @@ def global_search_ticker(query: str):
         st.error(f"Ticker search error: {e}")
         return []
 
-def format_financials(df: pd.DataFrame, statement_type: str = "Income") -> pd.DataFrame:
+def clean_financial_dataframe(df: pd.DataFrame, label: str = "") -> pd.DataFrame:
     if df is None or df.empty:
         return pd.DataFrame()
 
-    # Transpose so rows = dates, columns = line items
-    df = df.T.reset_index().rename(columns={"index": "Line Item"})
-
-    # Ensure Line Item is string type
-    df["Line Item"] = df["Line Item"].astype(str)
-    df["Line Item"] = df["Line Item"].str.replace("_", " ").str.title()
-
-    # Format date columns
+    # Format column dates
     df.columns = [
-        col.strftime("%b %Y") if isinstance(col, pd.Timestamp) else col
+        col.strftime("%b %Y") if isinstance(col, pd.Timestamp) else str(col)
         for col in df.columns
     ]
 
-    # Format numbers: convert to billions, add $
-    for col in df.columns[1:]:
-        df[col] = df[col].apply(
-            lambda x: f"${x/1e9:,.2f}B" if isinstance(x, (int, float)) else x
-        )
+    # Clean index (line items)
+    df.index = df.index.astype(str)
+    df.index = df.index.str.replace("_", " ").str.title()
 
-    df = df.set_index("Line Item")
+    # Format values to $ in billions
+    df = df.applymap(lambda x: f"${x/1e9:,.2f}B" if isinstance(x, (int, float)) else x)
 
-    # Optional filter: keep key lines for income statement
-    if statement_type.lower() == "income":
-        df = df.loc[[i for i in df.index if any(k in i.lower() for k in [
-            "revenue", "income", "expenses", "eps"])]]  # filter essentials
-
+    df.index.name = f"{label} Line Item"
     return df
+
 
 
 
@@ -465,12 +454,10 @@ with tabs[0]:
 		income_df = get_income_statement(ticker)
 
 	if income_df is None or income_df.empty:
-		st.error("No income statement data available.")
+	    st.warning("No income statement data available for this company.")
 	else:
-		formatted_income = format_financials(income_df, "Income")
-		st.dataframe(formatted_income)
-
-		st.subheader("Income Statement Trends")
+	    formatted_income = clean_financial_dataframe(income_df, "Income")
+	    st.dataframe(formatted_income, use_container_width=True)
 		plot_income_statement_trends(income_df, ticker)
 with tabs[1]:
 	st.subheader("Balance Sheet (Raw)")
@@ -478,10 +465,10 @@ with tabs[1]:
 		balance_df = get_balance_sheet(ticker)
 
 	if balance_df is None or balance_df.empty:
-		st.error("No balance sheet data available.")
+	    st.warning("No balance sheet data available.")
 	else:
-		formatted_bal = format_financials(balance_df, "Balance")
-		st.dataframe(formatted_bal)
+	    formatted_bal = clean_financial_dataframe(balance_df, "Balance")
+	    st.dataframe(formatted_bal, use_container_width=True)
 
 		st.subheader("Balance Sheet Trends")
 		plot_balance_trends(balance_df, ticker)
