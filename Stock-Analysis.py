@@ -285,9 +285,6 @@ def highlight_growth(val):
             return ""
     return ""
 
-styled = formatted_bal.style.applymap(highlight_growth, subset=["YoY Change"])
-st.dataframe(styled, use_container_width=True)
-
 def download_button(df: pd.DataFrame, filename: str):
     csv_data = df.to_csv().encode('utf-8')
     st.download_button(
@@ -439,6 +436,8 @@ with tabs[0]:
 	    formatted_income = add_yoy_change(formatted_income)
 	    st.dataframe(formatted_income, use_container_width=True)
 	    download_button(formatted_income, f"{ticker}_income_statement")
+	    styled = formatted_bal.style.applymap(highlight_growth, subset=["YoY Change"])
+	    st.dataframe(styled, use_container_width=True)
 	    plot_income_statement_trends(income_df, ticker)
 with tabs[1]:
 	st.subheader("Balance Sheet (Raw)")
@@ -452,6 +451,8 @@ with tabs[1]:
 	    formatted_bal = add_yoy_change(formatted_bal)
 	    st.dataframe(formatted_bal, use_container_width=True)
 	    download_button(formatted_bal, f"{ticker}_balance_sheet")
+	    styled = formatted_bal.style.applymap(highlight_growth, subset=["YoY Change"])
+	    st.dataframe(styled, use_container_width=True)
 
 
 	    st.subheader("Balance Sheet Trends")
