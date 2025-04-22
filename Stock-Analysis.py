@@ -378,6 +378,16 @@ Create table and format it with Bold section where it makes sense.
     )
 
     return response.choices[0].message.content
+
+import pdfkit
+import tempfile
+
+def generate_pdf_from_html(html_content: str) -> bytes:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:
+        pdfkit.from_string(html_content, tmpfile.name)
+        tmpfile.seek(0)
+        return tmpfile.read()
+
 # ------------------------------------------------------------------------------
 # 4. UI: Sidebar & Layout
 # ------------------------------------------------------------------------------
@@ -475,6 +485,22 @@ with tabs[3]:
 	with st.spinner("Generating commentary with AI..."):
 		commentary = get_chatgpt_commentary(client, income_df.to_string(), balance_df.to_string(),ten_k, ten_q, ticker)
 	st.markdown(commentary, unsafe_allow_html=True)
+	st.subheader("📄 Downloadable Report")
+
+	# Convert markdown to HTML
+	import markdown
+	commentary_html = markdown.markdown(commentary)
+	
+	# Generate PDF
+	pdf_data = generate_pdf_from_html(commentary_html)
+	
+	st.download_button(
+	    label="📥 Download AI Commentary as PDF",
+	    data=pdf_data,
+	    file_name=f"{ticker}_AI_Commentary.pdf",
+	    mime="application/pdf"
+	)
+
 # 👇 Chat context
 company_context = f"""
 Here is the financial data for {ticker}:
