@@ -96,7 +96,7 @@ def global_search_ticker(query: str):
 
             results.append(result)
 
-        # 🧠 Prioritize US tickers (e.g. NMS = NASDAQ, NYQ = NYSE)
+        # 🧠 Prioritize US exchanges (NMS = NASDAQ, NYQ = NYSE)
         prioritized = [r for r in results if r["exchange"] in ["NMS", "NYQ"]]
         others = [r for r in results if r not in prioritized]
 
@@ -105,6 +105,7 @@ def global_search_ticker(query: str):
     except Exception as e:
         st.error(f"Ticker search error: {e}")
         return []
+
 
 
 # SEC Downloader setup
@@ -349,22 +350,37 @@ Create table and format it with Bold section where it makes sense.
 # 4. UI: Sidebar & Layout
 # ------------------------------------------------------------------------------
 with st.sidebar:
-    st.markdown("## 🔍 Smart Ticker Lookup")
-    company_query = st.text_input("Enter company name or ticker:", value="Apple")
-    
-    ticker = None
-    if company_query:
-        matches = global_search_ticker(company_query)
-        if matches:
-            options = [f"{m['symbol']} - {m['shortname']} ({m['exchange']})" for m in matches]
-            selected = st.selectbox("Choose the company:", options)
-            ticker = selected.split(" - ")[0]
-            st.success(f"Resolved Ticker: `{ticker}`")
-        else:
-            st.warning("⚠️ No matching ticker found. Try a different name or symbol.")
+	st.markdown("### 🔍 Smart Ticker Lookup")
+	
+	company_query = st.text_input("Enter Company Name or Ticker:", value="Apple")
+	
+	ticker = None  # final ticker to be resolved
+	
+	# Run smart search if query is entered
+	if company_query:
+	    results = global_search_ticker(company_query)
+	
+	    if results:
+	        options = [
+	            f"{r['symbol']} - {r['shortname']} ({r['exchange']})"
+	            for r in results
+	        ]
+	        selected = st.selectbox("Select matching ticker:", options)
+	        ticker = selected.split(" - ")[0]
+	    else:
+	        st.warning("⚠️ No matching ticker found.")
+	
+	# Always provide manual override
+	manual_ticker = st.text_input("Or manually enter a known ticker (optional):")
+	
+	# Prioritize manual entry if filled
+	if manual_ticker.strip():
+	    ticker = manual_ticker.strip().upper()
+	
+	# Show final resolved ticker
+	if ticker:
+	    st.success(f"✅ Resolved Ticker: `{ticker}`")
 
-
-    show_analysis = st.button("Generate Full Analysis")
 
 
 display_company_metrics(ticker)
