@@ -379,32 +379,26 @@ Create table and format it with Bold section where it makes sense.
 
     return response.choices[0].message.content
 
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
-import io
+import markdown2
+from weasyprint import HTML
+import tempfile
 
-def generate_pdf_from_text(commentary: str) -> bytes:
-    buffer = io.BytesIO()
-    p = canvas.Canvas(buffer, pagesize=letter)
+def generate_pdf_from_markdown(md_content: str) -> bytes:
+    # Convert markdown to HTML
+    html_content = markdown2.markdown(md_content)
 
-    # Split text into lines and handle page limits
-    lines = commentary.split('\n')
-    max_lines_per_page = 60
-    x = 40
-    y = 750
-    line_height = 12
+    # Write to temp HTML file and convert to PDF
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".html") as html_file:
+        html_file.write(html_content.encode("utf-8"))
+        html_path = html_file.name
 
-    for i, line in enumerate(lines):
-        if i != 0 and i % max_lines_per_page == 0:
-            p.showPage()
-            y = 750
-        p.drawString(x, y, line[:110])  # clip to avoid overflow
-        y -= line_height
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as pdf_file:
+        HTML(html_path).write_pdf(pdf_file.name)
+        pdf_path = pdf_file.name
 
-    p.save()
-    buffer.seek(0)
-    return buffer.getvalue()
-
+    # Read and return as bytes for Streamlit download
+    with open(pdf_path, "rb") as f:
+        return f.read()
 
 # ------------------------------------------------------------------------------
 # 4. UI: Sidebar & Layout
@@ -507,12 +501,13 @@ with tabs[3]:
 
             st.markdown(commentary, unsafe_allow_html=True)
 
-            # Optional: PDF download button
-            st.download_button(
-                label="📥 Download AI Commentary as PDF",
-                data=generate_pdf_from_text(commentary),
-                file_name=f"{ticker}_AI_Commentary.pdf",
-                mime="application/pdf"
+		st.download_button(
+		    label="📥 Download AI Commentary as PDF",
+		    data=generate_pdf_from_markdown(commentary),
+		    file_name=f"{ticker}_AI_Commentary.pdf",
+		    mime="application/pdf"
+		)
+
             )
     else:
         st.info("👈 Click the button above to generate AI commentary based on financials.")
