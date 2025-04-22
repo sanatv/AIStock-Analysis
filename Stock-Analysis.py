@@ -497,20 +497,27 @@ with tabs[3]:
 
     if st.button("🧠 Generate AI Commentary"):
         with st.spinner("Generating commentary with AI..."):
-            commentary = get_chatgpt_commentary(client, income_df.to_string(), balance_df.to_string(), ten_k, ten_q, ticker)
+            commentary = get_chatgpt_commentary(
+                client,
+                income_df.to_string(),
+                balance_df.to_string(),
+                ten_k,
+                ten_q,
+                ticker
+            )
 
             st.markdown(commentary, unsafe_allow_html=True)
 
-	    st.download_button(
-		    label="📥 Download AI Commentary as PDF",
-		    data=generate_pdf_from_markdown(commentary),
-		    file_name=f"{ticker}_AI_Commentary.pdf",
-		    mime="application/pdf"
-		)
-
+            st.download_button(
+                label="📥 Download AI Commentary as PDF",
+                data=generate_pdf_from_markdown(commentary),
+                file_name=f"{ticker}_AI_Commentary.pdf",
+                mime="application/pdf"
             )
+
     else:
         st.info("👈 Click the button above to generate AI commentary based on financials.")
+
 
 # 👇 Chat context
 company_context = f"""
