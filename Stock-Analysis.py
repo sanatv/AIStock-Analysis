@@ -458,7 +458,7 @@ with tabs[0]:
 	else:
 	    formatted_income = clean_financial_dataframe(income_df, "Income")
 	    st.dataframe(formatted_income, use_container_width=True)
-		plot_income_statement_trends(income_df, ticker)
+	    plot_income_statement_trends(income_df, ticker)
 with tabs[1]:
 	st.subheader("Balance Sheet (Raw)")
 	with st.spinner("Fetching Balance Sheet..."):
