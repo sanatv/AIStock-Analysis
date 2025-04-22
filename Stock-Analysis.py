@@ -235,7 +235,7 @@ def display_company_metrics(ticker: str):
             # df = get_1d_price_data(ticker)
             if df is not None and not df.empty:
                 # row2[2].line_chart(df.set_index("Datetime")["Close"], height=100)
-            row2[2].markdown(
+            	row2[2].markdown(
                 f"""
                 <div style='font-size:1em; color:{color}; font-weight:bold;'>
                     ${current_price} {arrow}<br/>({change}, {pct}%)
