@@ -382,11 +382,32 @@ Create table and format it with Bold section where it makes sense.
 import pdfkit
 import tempfile
 
-def generate_pdf_from_html(html_content: str) -> bytes:
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:
-        pdfkit.from_string(html_content, tmpfile.name)
-        tmpfile.seek(0)
-        return tmpfile.read()
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+import io
+
+def generate_pdf_from_text(commentary: str) -> bytes:
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer, pagesize=letter)
+
+    # Split text into lines and handle page limits
+    lines = commentary.split('\n')
+    max_lines_per_page = 60
+    x = 40
+    y = 750
+    line_height = 12
+
+    for i, line in enumerate(lines):
+        if i != 0 and i % max_lines_per_page == 0:
+            p.showPage()
+            y = 750
+        p.drawString(x, y, line[:110])  # clip to avoid overflow
+        y -= line_height
+
+    p.save()
+    buffer.seek(0)
+    return buffer.getvalue()
+
 
 # ------------------------------------------------------------------------------
 # 4. UI: Sidebar & Layout
@@ -485,14 +506,9 @@ with tabs[3]:
 	with st.spinner("Generating commentary with AI..."):
 		commentary = get_chatgpt_commentary(client, income_df.to_string(), balance_df.to_string(),ten_k, ten_q, ticker)
 	st.markdown(commentary, unsafe_allow_html=True)
-	st.subheader("📄 Downloadable Report")
-
-	# Convert markdown to HTML
-	import markdown
-	commentary_html = markdown.markdown(commentary)
+	st.subheader("📄 Downloadable AI Report")
 	
-	# Generate PDF
-	pdf_data = generate_pdf_from_html(commentary_html)
+	pdf_data = generate_pdf_from_text(commentary)
 	
 	st.download_button(
 	    label="📥 Download AI Commentary as PDF",
