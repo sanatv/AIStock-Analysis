@@ -470,8 +470,8 @@ with tabs[1]:
 	    formatted_bal = clean_financial_dataframe(balance_df, "Balance")
 	    st.dataframe(formatted_bal, use_container_width=True)
 
-		st.subheader("Balance Sheet Trends")
-		plot_balance_trends(balance_df, ticker)
+	    st.subheader("Balance Sheet Trends")
+	    plot_balance_trends(balance_df, ticker)
 
 
 with tabs[2]:
