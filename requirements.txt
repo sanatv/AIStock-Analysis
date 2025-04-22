@@ -20,4 +20,3 @@ requests
 altair
 reportlab
 tempfile
-markdown
