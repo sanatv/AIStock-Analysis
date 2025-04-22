@@ -147,6 +147,34 @@ def get_realtime_price(ticker: str):
     except:
         return None, None, None
 
+import altair as alt
+
+@st.cache_data(ttl=60)
+def get_1d_price_data(ticker: str) -> pd.DataFrame:
+    stock = yf.Ticker(ticker)
+    df = stock.history(period="1d", interval="5m")
+    df = df.reset_index()
+    return df[["Datetime", "Close"]]
+
+def plot_1d_price_chart(ticker: str):
+    df = get_1d_price_data(ticker)
+    if df is None or df.empty:
+        st.warning("⚠️ No intraday price data available.")
+        return
+
+    chart = alt.Chart(df).mark_line(color="steelblue").encode(
+        x=alt.X("Datetime:T", title="Time"),
+        y=alt.Y("Close:Q", title="Price ($)"),
+        tooltip=["Datetime:T", "Close:Q"]
+    ).properties(
+        title=f"{ticker} - Intraday Price Trend",
+        width="container",
+        height=300
+    ).interactive()
+
+    st.altair_chart(chart, use_container_width=True)
+
+
 def display_company_metrics(ticker: str):
     try:
         ticker_obj = yf.Ticker(ticker)
@@ -165,27 +193,34 @@ def display_company_metrics(ticker: str):
         arrow = "🔺" if change and change >= 0 else "🔻"
         color = "green" if change and change >= 0 else "red"
 
-        # Display Metrics
-        st.markdown("## 📊 Company Metrics & Real-Time Price")
-        col1, col2, col3, col4, col5, col6 = st.columns(6)
+	st.markdown("## 📊 Company Metrics & Real-Time Price")
+	
+	row1 = st.columns(3)
+	row2 = st.columns(3)
+	
+	row1[0].metric("📦 Market Cap", f"${market_cap/1e9:.2f}B" if market_cap else "N/A")
+	row1[1].metric("📊 EPS", f"${eps:.2f}" if eps else "N/A")
+	row1[2].metric("📈 P/E Ratio", f"{pe_ratio:.2f}" if pe_ratio else "N/A")
+	
+	row2[0].metric("💸 Dividend Yield", f"{dividend_yield*100:.2f}%" if dividend_yield else "N/A")
+	row2[1].metric("🔺 52W High", f"${year_high:.2f}" if year_high else "N/A")
+	
+	# Real-time stock price + sparkline
+	if current_price is not None:
+	    df = get_1d_price_data(ticker)
+	    if df is not None and not df.empty:
+	        row2[2].line_chart(df.set_index("Datetime")["Close"], height=100)
+	    row2[2].markdown(
+	        f"""
+	        <div style='font-size:1em; color:{color}; font-weight:bold;'>
+	            ${current_price} {arrow}<br/>({change}, {pct}%)
+	        </div>
+	        """,
+	        unsafe_allow_html=True
+	    )
+	else:
+	    row2[2].metric("Price", "N/A")
 
-        col1.metric("📦 Market Cap", f"${market_cap/1e9:.2f}B" if market_cap else "N/A")
-        col2.metric("📊 EPS", f"${eps:.2f}" if eps else "N/A")
-        col3.metric("📈 P/E Ratio", f"{pe_ratio:.2f}" if pe_ratio else "N/A")
-        col4.metric("💸 Dividend Yield", f"{dividend_yield:.2f}%" if dividend_yield else "N/A")
-        col5.metric("🔺 52W High", f"${year_high:.2f}" if year_high else "N/A")
-
-        if current_price is not None:
-            col6.markdown(
-                f"""
-                <div style='font-size:1.3em; color:{color}; font-weight:bold;'>
-                    ${current_price} {arrow}<br/>({change}, {pct}%)
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-        else:
-            col6.metric("Price", "N/A")
 
     except Exception as e:
         st.warning(f"⚠️ Unable to display company metrics: {e}")
@@ -296,7 +331,11 @@ with st.sidebar:
 
 
     show_analysis = st.button("Generate Full Analysis")
+
+
 display_company_metrics(ticker)
+plot_1d_price_chart(ticker)
+
 
 # if show_analysis:
 #     st.markdown("## 📊 Company Overview")
