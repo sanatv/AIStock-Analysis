@@ -236,15 +236,15 @@ def display_company_metrics(ticker: str):
             if df is not None and not df.empty:
                 # row2[2].line_chart(df.set_index("Datetime")["Close"], height=100)
             	row2[2].markdown(
-                f"""
-                <div style='font-size:1em; color:{color}; font-weight:bold;'>
-                    ${current_price} {arrow}<br/>({change}, {pct}%)
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-        else:
-            row2[2].metric("Price", "N/A")
+	                f"""
+	                <div style='font-size:1em; color:{color}; font-weight:bold;'>
+	                    ${current_price} {arrow}<br/>({change}, {pct}%)
+	                </div>
+	                """,
+	                unsafe_allow_html=True
+	            )
+	        else:
+	            row2[2].metric("Price", "N/A")
 
     except Exception as e:
         st.warning(f"⚠️ Unable to display company metrics: {e}")
