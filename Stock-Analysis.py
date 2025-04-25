@@ -41,17 +41,17 @@ st.set_page_config(
 # ------------------------------------------------------------------------------
 # 2. Secrets & clients
 # ------------------------------------------------------------------------------
-# OPENAI_KEY = st.secrets.get("openai_key")
-# OPENAI_ORG = st.secrets.get("openai_org")
-# if not OPENAI_KEY:
-#     st.error("🔒 Please configure your OpenAI API key in Streamlit secrets as 'openai_key'.")
-#     st.stop()
+OPENAI_KEY = st.secrets.get("openai_key")
+OPENAI_ORG = st.secrets.get("openai_org")
+if not OPENAI_KEY:
+    st.error("🔒 Please configure your OpenAI API key in Streamlit secrets as 'openai_key'.")
+    st.stop()
 
-# @st.cache_resource
-# def init_openai_client() -> OpenAI:
-#     return OpenAI(api_key=OPENAI_KEY, organization=OPENAI_ORG)
+@st.cache_resource
+def init_openai_client_ai_commentry() -> OpenAI:
+    return OpenAI(api_key=OPENAI_KEY, organization=OPENAI_ORG)
 
-# client = init_openai_client()
+client = init_openai_client_ai_commentry()
 
 
 @st.cache_resource
