@@ -26,3 +26,4 @@ langchain
 langchain-core
 duckduckgo-search
 tiktoken
+
