@@ -825,31 +825,29 @@ with tabs[4]:
 from streamlit.components.v1 import html
 	
 st.markdown("### 🗂️ Previous Conversations")
+
 for i, (q, a) in enumerate(reversed(st.session_state.web_chat_history), 1):
     with st.container():
-	# User bubble
-	st.markdown("### 🗂️ Previous Conversations")
-	for i, (q, a) in enumerate(reversed(st.session_state.web_chat_history), 1):
-	    with st.container():
-	        # User bubble
-	        st.markdown(f"""
-	        <div style="display: flex; align-items: start; margin-bottom: 10px;">
-	            <div style="font-size: 24px; margin-right: 10px;">👤</div>
-	            <div style="background-color: #f0f2f6; padding: 10px 15px; border-radius: 12px; max-width: 85%;">
-	                <strong>You:</strong><br>{q}
-	            </div>
-	        </div>
-	        """, unsafe_allow_html=True)
-	
-	        # GPT bubble
-	        st.markdown(f"""
-	        <div style="display: flex; align-items: start; margin-bottom: 25px;">
-	            <div style="font-size: 24px; margin-right: 10px;">🧠</div>
-	            <div style="background-color: #e8f5e9; padding: 10px 15px; border-radius: 12px; max-width: 85%;">
-	                <strong>GPT-4o:</strong><br>{a}
-	            </div>
-	        </div>
-	        """, unsafe_allow_html=True)
+        # User bubble
+        st.markdown(f"""
+        <div style="display: flex; align-items: start; margin-bottom: 10px;">
+            <div style="font-size: 24px; margin-right: 10px;">👤</div>
+            <div style="background-color: #f0f2f6; padding: 10px 15px; border-radius: 12px; max-width: 85%;">
+                <strong>You:</strong><br>{q}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # GPT bubble
+        st.markdown(f"""
+        <div style="display: flex; align-items: start; margin-bottom: 25px;">
+            <div style="font-size: 24px; margin-right: 10px;">🧠</div>
+            <div style="background-color: #e8f5e9; padding: 10px 15px; border-radius: 12px; max-width: 85%;">
+                <strong>GPT-4o:</strong><br>{a}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
 
         # Download as PDF
         if st.button("📄 Download Q&A as PDF"):
