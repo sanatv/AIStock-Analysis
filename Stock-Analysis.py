@@ -515,7 +515,7 @@ selected_range = st.selectbox("Select Time Range:", range_options, index=6)  # d
 plot_chart_with_range(ticker, selected_range)
 
    # Tabs for structured view
-tabs = st.tabs(["📈 Income Statement", "📊 Balance Sheet", "📄 SEC Filings", "🤖 AI Commentary","💬 AI Chatbot","🧠 Vision Assistant (PDF/Image Understanding")]
+tabs = st.tabs(["📈 Income Statement", "📊 Balance Sheet", "📄 SEC Filings", "🤖 AI Commentary","💬 AI Chatbot","🧠 Vision Assistant (PDF/Image Understanding"))]
     
 with tabs[0]:
     st.subheader("🔄 Income Flow (Latest Year)")
