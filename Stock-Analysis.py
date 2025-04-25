@@ -467,7 +467,11 @@ with tabs[0]:
         import plotly.graph_objects as go
 
         # Dynamically detect latest fiscal column
-        latest_year_col = [col for col in income_df.columns if any(char.isdigit() for char in col)][0]
+        latest_year_col = [
+            str(col) for col in income_df.columns
+            if any(char.isdigit() for char in str(col))
+        ][0]
+
 
         # Select and clean key line items
         selected_items = [
