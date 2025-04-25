@@ -754,77 +754,104 @@ Here is the financial data for {ticker}:
 """
     
 import openai
+import io
+from datetime import datetime
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
 
-# Helper to initialize client
 @st.cache_resource
 def init_openai_sdk():
     return openai.OpenAI(api_key=st.secrets.get("openai_key"))
 
 with tabs[4]:
-    st.subheader("💬 GPT-4o Assistant: Company Context + Web Search")
+    st.subheader("💬 GPT-4o Assistant (Financial Context + Optional Web Search)")
 
+    # Toggle for web search
+    use_web = st.toggle("🌐 Enable Web Search with GPT-4o", value=True)
+
+    # Session history
     if "web_chat_history" not in st.session_state:
         st.session_state.web_chat_history = []
 
-    # 🧠 Prepare all loaded data as context
-    try:
-        context_parts = []
+    # Combine financial context
+    context_parts = []
 
-        if 'income_df' in locals() and not income_df.empty:
-            context_parts.append("### Income Statement:\n" + income_df.to_string())
+    if 'income_df' in locals() and not income_df.empty:
+        context_parts.append("### Income Statement:\n" + income_df.to_string())
 
-        if 'balance_df' in locals() and not balance_df.empty:
-            context_parts.append("### Balance Sheet:\n" + balance_df.to_string())
+    if 'balance_df' in locals() and not balance_df.empty:
+        context_parts.append("### Balance Sheet:\n" + balance_df.to_string())
 
-        if 'ten_k' in locals() and ten_k:
-            context_parts.append("### 10-K Filing Preview:\n" + ten_k[:3000])
+    if 'ten_k' in locals() and ten_k:
+        context_parts.append("### 10-K Filing Preview:\n" + ten_k[:3000])
 
-        if 'ten_q' in locals() and ten_q:
-            context_parts.append("### 10-Q Filing Preview:\n" + ten_q[:3000])
+    if 'ten_q' in locals() and ten_q:
+        context_parts.append("### 10-Q Filing Preview:\n" + ten_q[:3000])
 
-        company_context = "\n\n".join(context_parts) if context_parts else "No structured data was loaded."
+    company_context = "\n\n".join(context_parts) if context_parts else "No structured data available."
 
-    except Exception as e:
-        st.error(f"Context preparation error: {e}")
-        company_context = "Context unavailable due to error."
-
-    # 🔍 User question input
-    user_question = st.text_input("🧠 Ask about this company (financials + web):")
+    # User input
+    user_question = st.text_input("🧠 Ask about this company:", key="gpt4o_input")
 
     if user_question:
-        with st.spinner("AI thinking with company data + live search..."):
+        with st.spinner("Thinking with GPT-4o..."):
             try:
                 client = init_openai_sdk()
 
                 full_prompt = f"""
-You're a highly accurate financial assistant. First, use the company's structured data below to answer the question. 
-If the data is insufficient, you may use web tools.
-
-==== COMPANY DATA ====
-{company_context}
-
-==== QUESTION ====
-{user_question}
-"""
+	You are a smart financial assistant. First, try to answer from the structured financial data below. 
+	If not sufficient, use your web search tool (if allowed).
+	
+	==== COMPANY DATA ====
+	{company_context}
+	
+	==== QUESTION ====
+	{user_question}
+	"""
 
                 response = client.responses.create(
                     model="gpt-4o",
                     input=full_prompt,
-                    tools=[{"type": "web_search"}]
+                    tools=[{"type": "web_search"}] if use_web else []
                 )
 
-                answer = response.output_text
-                st.session_state.web_chat_history.append((user_question, answer))
+                reply = response.output_text
+                st.session_state.web_chat_history.append((user_question, reply))
             except Exception as e:
-                st.error(f"❌ GPT-4o error: {e}")
-                answer = None
+                st.error(f"❌ GPT-4o Error: {e}")
+                reply = None
 
-    # 🗂️ Conversation History
+    # Display past conversation
     if st.session_state.web_chat_history:
-        st.markdown("### 📜 Past Q&A")
+        st.markdown("### 🗂️ Previous Conversations")
         for i, (q, a) in enumerate(reversed(st.session_state.web_chat_history), 1):
             with st.expander(f"Q{i}: {q}"):
                 st.markdown(a)
+
+        # Download as PDF
+        if st.button("📄 Download Q&A as PDF"):
+            buffer = io.BytesIO()
+            c = canvas.Canvas(buffer, pagesize=A4)
+            width, height = A4
+            y = height - 50
+
+            for i, (q, a) in enumerate(st.session_state.web_chat_history):
+                for line in [f"Q{i+1}: {q}", f"A: {a}"]:
+                    for chunk in [line[i:i+90] for i in range(0, len(line), 90)]:
+                        c.drawString(40, y, chunk)
+                        y -= 15
+                        if y < 40:
+                            c.showPage()
+                            y = height - 50
+
+            c.save()
+            st.download_button(
+                label="⬇️ Download as PDF",
+                data=buffer.getvalue(),
+                file_name=f"{datetime.now().strftime('%Y-%m-%d')}_chat_history.pdf",
+                mime="application/pdf"
+            )
+
 
 
 
