@@ -515,7 +515,7 @@ selected_range = st.selectbox("Select Time Range:", range_options, index=6)  # d
 plot_chart_with_range(ticker, selected_range)
 
    # Tabs for structured view
-tabs = st.tabs(["📈 Income Statement", "📊 Balance Sheet", "📄 SEC Filings", "🤖 AI Commentary","💬 Company Chatbot"])
+tabs = st.tabs(["📈 Income Statement", "📊 Balance Sheet", "📄 SEC Filings", "🤖 AI Commentary","💬 AI Chatbot"],"🧠 Vision Assistant (PDF/Image Understanding")
     
 with tabs[0]:
     st.subheader("🔄 Income Flow (Latest Year)")
@@ -873,6 +873,59 @@ for i, (q, a) in enumerate(reversed(st.session_state.web_chat_history), 1):
                 mime="application/pdf"
             )
 
+with tabs[5]:
+    st.subheader("🧠 GPT-4o Vision Assistant (PDF/Image Understanding)")
+
+    uploaded_file = st.file_uploader("📎 Upload an image or PDF", type=["png", "jpg", "jpeg", "pdf"])
+
+    if uploaded_file:
+        file_type = uploaded_file.type
+        st.success(f"✅ File uploaded: `{uploaded_file.name}`")
+
+        # Read and convert to base64
+        import base64
+        file_bytes = uploaded_file.read()
+        file_base64 = base64.b64encode(file_bytes).decode("utf-8")
+
+        # Set appropriate media type
+        if "pdf" in file_type:
+            media_type = "application/pdf"
+        elif "image" in file_type:
+            media_type = file_type  # either image/jpeg or image/png
+        else:
+            st.error("Unsupported file type.")
+            media_type = None
+
+        vision_prompt = st.text_input("💬 What do you want to ask GPT-4o about this file?")
+
+        if vision_prompt and media_type:
+            with st.spinner("🔍 GPT-4o is analyzing the uploaded file..."):
+                try:
+                    import openai
+                    client = openai.OpenAI(api_key=st.secrets.get("openai_key"))
+
+                    response = client.chat.completions.create(
+                        model="gpt-4o",
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": [
+                                    {"type": "text", "text": vision_prompt},
+                                    {"type": "file", "file": {"media_type": media_type, "data": file_base64}}
+                                ]
+                            }
+                        ],
+                        max_tokens=1500
+                    )
+
+                    vision_answer = response.choices[0].message.content
+                    st.markdown("### 🧠 GPT-4o Response")
+                    st.markdown(vision_answer)
+
+                except Exception as e:
+                    st.error(f"❌ GPT-4o Vision Error: {e}")
+    else:
+        st.info("Upload a PDF or image to begin.")
 
 
 
