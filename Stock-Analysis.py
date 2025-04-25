@@ -762,6 +762,20 @@ from reportlab.lib.pagesizes import A4
 @st.cache_resource
 def init_openai_sdk():
     return openai.OpenAI(api_key=st.secrets.get("openai_key"))
+import random
+
+def generate_follow_up_questions():
+    options = [
+        "Show me the revenue growth over the last 5 years.",
+        "What is the latest analyst rating for this company?",
+        "Summarize the recent earnings call highlights.",
+        "What are the major competitors of this company?",
+        "How has the company's operating margin changed recently?",
+        "What risks are listed in their latest 10-K filing?",
+        "How much debt is reported in the balance sheet?",
+        "What was the year-over-year change in Net Income?",
+    ]
+    return random.sample(options, 3)
 
 with tabs[4]:
     st.subheader("💬 GPT-4o Assistant (Financial Context + Optional Web Search)")
@@ -831,9 +845,8 @@ from streamlit.components.v1 import html
 	
 st.markdown("### 🗂️ Previous Conversations")
 
-for i, (q, a) in enumerate(reversed(st.session_state.web_chat_history), 1):
+for idx, (q, a) in enumerate(reversed(st.session_state.web_chat_history), 1):
     if layout_mode == "🗨️ Chat Bubbles":
-        # Bubbles Layout
         with st.container():
             # User bubble
             st.markdown(f"""
@@ -854,10 +867,26 @@ for i, (q, a) in enumerate(reversed(st.session_state.web_chat_history), 1):
                 </div>
             </div>
             """, unsafe_allow_html=True)
+
+            # 💬 Smart Follow-Up Suggestions (only after the latest answer)
+            if idx == 1:
+                st.markdown("#### 🔥 You might also ask:")
+                for suggestion in generate_follow_up_questions():
+                    if st.button(f"💬 {suggestion}", key=f"suggestion_{suggestion}"):
+                        # Auto-fill the input box with suggestion
+                        st.session_state["gpt4o_input"] = suggestion
+                        st.experimental_rerun()
+
     else:
-        # Expanders Layout
-        with st.expander(f"Q{i}: {q}"):
+        with st.expander(f"Q{idx}: {q}"):
             st.markdown(a)
+
+            if idx == 1:
+                st.markdown("#### 🔥 Suggested Next Questions:")
+                for suggestion in generate_follow_up_questions():
+                    if st.button(f"💬 {suggestion}", key=f"suggestion_{suggestion}"):
+                        st.session_state["gpt4o_input"] = suggestion
+                        st.experimental_rerun()
 
 
         # Download as PDF
