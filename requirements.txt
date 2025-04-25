@@ -21,3 +21,8 @@ altair
 reportlab
 weasyprint
 markdown2
+openai
+langchain
+langchain-core
+duckduckgo-search
+tiktoken

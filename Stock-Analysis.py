@@ -8,6 +8,21 @@ from openai import OpenAI
 import matplotlib.pyplot as plt
 import requests
 import plotly.graph_objects as go
+import streamlit as st
+from langchain_openai import ChatOpenAI
+from langchain.agents import AgentExecutor, create_openai_tools_agent
+from langchain.agents.agent_toolkits import create_retriever_tool
+from langchain.tools import DuckDuckGoSearchRun
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.messages import AIMessage, HumanMessage
+from langchain_community.vectorstores import FAISS
+from langchain_openai import OpenAIEmbeddings
+
+
+
+
+
+
 
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
@@ -36,6 +51,46 @@ def init_openai_client() -> OpenAI:
     return OpenAI(api_key=OPENAI_KEY, organization=OPENAI_ORG)
 
 client = init_openai_client()
+
+
+# Initialize OpenAI Client (cached)
+@st.cache_resource
+def init_openai_client():
+    return ChatOpenAI(model="gpt-4-turbo", temperature=0)
+
+# Web Search Tool
+search_tool = DuckDuckGoSearchRun()
+
+# Function to create vector retriever from company context
+def create_retriever(context):
+    embeddings = OpenAIEmbeddings()
+    vector_store = FAISS.from_texts([context], embeddings)
+    return vector_store.as_retriever()
+
+# Set up LangChain Agent
+def setup_agent(company_context):
+    retriever = create_retriever(company_context)
+    retriever_tool = create_retriever_tool(
+        retriever,
+        name="company_data",
+        description="Searches financial details about the company provided in the context."
+    )
+
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", "You are a knowledgeable financial assistant. Use provided tools to answer questions."),
+        MessagesPlaceholder(variable_name="chat_history", optional=True),
+        ("human", "{input}"),
+        MessagesPlaceholder(variable_name="agent_scratchpad"),
+    ])
+
+    tools = [retriever_tool, search_tool]
+
+    agent = create_openai_tools_agent(init_openai_client(), tools, prompt)
+    agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=False)
+
+    return agent_executor
+
+
 
 # ------------------------------------------------------------------------------
 # 3. Data fetching & transformation
@@ -672,14 +727,54 @@ Here is the financial data for {ticker}:
 """
 
 with tabs[4]:
-    st.subheader("💬 Ask Questions About the Company")
+
+
+
+
+
+
+    #st.subheader("💬 Ask Questions About the Company")
+    
+    
+    
+        # Initialize chat history
+    if 'chat_history' not in st.session_state:
+        st.session_state.chat_history = []
+
+    st.subheader("🤖 Enhanced Financial Chatbot")
+
+    user_input = st.text_input("🔍 Ask me anything about this company:")
+    if user_input:
+        with st.spinner("Generating precise and up-to-date answer..."):
+            agent_executor = setup_agent(company_context)
+
+            try:
+                result = agent_executor.invoke({
+                    "input": user_input,
+                    "chat_history": [
+                        HumanMessage(content=msg[0]) if i % 2 == 0 else AIMessage(content=msg[1])
+                        for i, msg in enumerate(st.session_state.chat_history)
+                    ]
+                })
+                reply = result["output"]
+                st.session_state.chat_history.append((user_input, reply))
+            except Exception as e:
+                st.error(f"Error from AI Agent: {e}")
+                reply = None
+
+    # Display chat history
+    for user_msg, bot_reply in reversed(st.session_state.chat_history):
+        st.markdown(f"**You:** {user_msg}")
+        st.markdown(f"🤖: {bot_reply}")
+        st.divider()
+
 
     user_input = st.text_input("Ask me anything about this company:")
     if user_input:
         openai_client = init_openai_client()
 
         messages = [
-            {"role": "system", "content": f"You are a financial assistant. Use the context below to answer questions:\n\n{company_context}"},
+            {"role": "system", "content": f"You are a financial assistant. Use the context below to answer questions:\n\n{company_context}. "},
             {"role": "user", "content": user_input}
         ]
 
