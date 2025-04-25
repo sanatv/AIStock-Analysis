@@ -9,14 +9,15 @@ import matplotlib.pyplot as plt
 import requests
 import plotly.graph_objects as go
 import streamlit as st
-from langchain_openai import ChatOpenAI
+import streamlit as st
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain.agents import AgentExecutor, create_openai_tools_agent
 from langchain.agents.agent_toolkits import create_retriever_tool
-from langchain.tools import DuckDuckGoSearchRun
+from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_community.vectorstores import FAISS
-from langchain_openai import OpenAIEmbeddings
+
 
 
 
@@ -40,34 +41,34 @@ st.set_page_config(
 # ------------------------------------------------------------------------------
 # 2. Secrets & clients
 # ------------------------------------------------------------------------------
-OPENAI_KEY = st.secrets.get("openai_key")
-OPENAI_ORG = st.secrets.get("openai_org")
-if not OPENAI_KEY:
-    st.error("🔒 Please configure your OpenAI API key in Streamlit secrets as 'openai_key'.")
-    st.stop()
+# OPENAI_KEY = st.secrets.get("openai_key")
+# OPENAI_ORG = st.secrets.get("openai_org")
+# if not OPENAI_KEY:
+#     st.error("🔒 Please configure your OpenAI API key in Streamlit secrets as 'openai_key'.")
+#     st.stop()
+
+# @st.cache_resource
+# def init_openai_client() -> OpenAI:
+#     return OpenAI(api_key=OPENAI_KEY, organization=OPENAI_ORG)
+
+# client = init_openai_client()
+
 
 @st.cache_resource
-def init_openai_client() -> OpenAI:
-    return OpenAI(api_key=OPENAI_KEY, organization=OPENAI_ORG)
+def init_openai_client():
+    api_key = st.secrets.get("openai_key")
+    if not api_key:
+        st.error("🔒 Please configure your OpenAI API key in Streamlit secrets.")
+        st.stop()
+    return ChatOpenAI(api_key=api_key, model="gpt-4-turbo", temperature=0)
 
-client = init_openai_client()
-
-
-# # Initialize OpenAI Client (cached)
-# @st.cache_resource
-# def init_openai_client():
-#     return ChatOpenAI(model="gpt-4-turbo", temperature=0)
-
-# Web Search Tool
 search_tool = DuckDuckGoSearchRun()
 
-# Function to create vector retriever from company context
 def create_retriever(context):
-    embeddings = OpenAIEmbeddings()
+    embeddings = OpenAIEmbeddings(api_key=st.secrets.get("openai_key"))
     vector_store = FAISS.from_texts([context], embeddings)
     return vector_store.as_retriever()
 
-# Set up LangChain Agent
 def setup_agent(company_context):
     retriever = create_retriever(company_context)
     retriever_tool = create_retriever_tool(
@@ -89,6 +90,16 @@ def setup_agent(company_context):
     agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=False)
 
     return agent_executor
+
+
+
+
+# # Initialize OpenAI Client (cached)
+# @st.cache_resource
+# def init_openai_client():
+#     return ChatOpenAI(model="gpt-4-turbo", temperature=0)
+
+
 
 
 
