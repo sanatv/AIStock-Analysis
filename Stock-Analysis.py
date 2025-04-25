@@ -514,7 +514,7 @@ with tabs[0]:
                 hovertext.append(f"{src} → {tgt}<br>{flow_val:,.0f} USD<br>{pct:.2f}% of Revenue")
 
         # Sankey chart with tooltips
-        import plotly.graph_objects as go
+#import plotly.graph_objects as go
         fig = go.Figure(go.Sankey(
             node=dict(
                 pad=15, thickness=20,
@@ -523,7 +523,15 @@ with tabs[0]:
             ),
             link=dict(
                 source=source,
-                target=target
+                target=target,
+                value=value,
+        customdata=hovertext,
+        hovertemplate="%{customdata}<extra></extra>"
+            )
+        ))
+
+fig.update_layout(title_text=f"📊 Income Flow for {latest_year_col}", font_size=10)
+st.plotly_chart(fig, use_container_width=True)
 
 
 
