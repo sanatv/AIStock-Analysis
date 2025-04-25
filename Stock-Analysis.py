@@ -808,7 +808,7 @@ If the data is insufficient, you may use web tools.
 """
 
                 response = client.responses.create(
-                    model="gpt-4o",
+                    model="gpt-4.1",
                     input=full_prompt,
                     tools=[{"type": "web_search"}]
                 )
