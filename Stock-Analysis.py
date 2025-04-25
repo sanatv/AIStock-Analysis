@@ -752,69 +752,80 @@ Here is the financial data for {ticker}:
 ### 10-Q Summary:
 {ten_q[:5000]}
 """
+    
+import openai
+
+# Helper to initialize client
+@st.cache_resource
+def init_openai_sdk():
+    return openai.OpenAI(api_key=st.secrets.get("openai_key"))
 
 with tabs[4]:
+    st.subheader("💬 GPT-4o Assistant: Company Context + Web Search")
 
-    #st.subheader("💬 Ask Questions About the Company")
-    
-    
-    
-        # Initialize chat history
-    if 'chat_history' not in st.session_state:
-        st.session_state.chat_history = []
+    if "web_chat_history" not in st.session_state:
+        st.session_state.web_chat_history = []
 
-    st.subheader("🤖 Enhanced Financial Chatbot")
+    # 🧠 Prepare all loaded data as context
+    try:
+        context_parts = []
 
-    user_input = st.text_input("🔍 Ask me anything about this company:")
-    if user_input:
-        with st.spinner("Generating precise and up-to-date answer..."):
-            agent_executor = setup_agent(company_context)
+        if 'income_df' in locals() and not income_df.empty:
+            context_parts.append("### Income Statement:\n" + income_df.to_string())
 
+        if 'balance_df' in locals() and not balance_df.empty:
+            context_parts.append("### Balance Sheet:\n" + balance_df.to_string())
+
+        if 'ten_k' in locals() and ten_k:
+            context_parts.append("### 10-K Filing Preview:\n" + ten_k[:3000])
+
+        if 'ten_q' in locals() and ten_q:
+            context_parts.append("### 10-Q Filing Preview:\n" + ten_q[:3000])
+
+        company_context = "\n\n".join(context_parts) if context_parts else "No structured data was loaded."
+
+    except Exception as e:
+        st.error(f"Context preparation error: {e}")
+        company_context = "Context unavailable due to error."
+
+    # 🔍 User question input
+    user_question = st.text_input("🧠 Ask about this company (financials + web):")
+
+    if user_question:
+        with st.spinner("GPT-4o thinking with company data + live search..."):
             try:
-                result = agent_executor.invoke({
-                    "input": user_input,
-                    "chat_history": [
-                        HumanMessage(content=msg[0]) if i % 2 == 0 else AIMessage(content=msg[1])
-                        for i, msg in enumerate(st.session_state.chat_history)
-                    ]
-                })
-                reply = result["output"]
-                st.session_state.chat_history.append((user_input, reply))
+                client = init_openai_sdk()
+
+                full_prompt = f"""
+You're a highly accurate financial assistant. First, use the company's structured data below to answer the question. 
+If the data is insufficient, you may use web tools.
+
+==== COMPANY DATA ====
+{company_context}
+
+==== QUESTION ====
+{user_question}
+"""
+
+                response = client.responses.create(
+                    model="gpt-4o",
+                    input=full_prompt,
+                    tools=[{"type": "web_search"}]
+                )
+
+                answer = response.output_text
+                st.session_state.web_chat_history.append((user_question, answer))
             except Exception as e:
-                st.error(f"Error from AI Agent: {e}")
-                reply = None
+                st.error(f"❌ GPT-4o error: {e}")
+                answer = None
 
-    # Display chat history
-    for user_msg, bot_reply in reversed(st.session_state.chat_history):
-        st.markdown(f"**You:** {user_msg}")
-        st.markdown(f"🤖: {bot_reply}")
-        st.divider()
+    # 🗂️ Conversation History
+    if st.session_state.web_chat_history:
+        st.markdown("### 📜 Past Q&A")
+        for i, (q, a) in enumerate(reversed(st.session_state.web_chat_history), 1):
+            with st.expander(f"Q{i}: {q}"):
+                st.markdown(a)
 
-
-    # user_input = st.text_input("Ask me anything about this company:")
-    # if user_input:
-    #     openai_client = init_openai_client()
-
-    #     messages = [
-    #         {"role": "system", "content": f"You are a financial assistant. Use the context below to answer questions:\n\n{company_context}. "},
-    #         {"role": "user", "content": user_input}
-    #     ]
-
-    #     try:
-    #         response = openai_client.chat.completions.create(
-    #             model="gpt-4.1-mini",
-    #             messages=messages
-    #         )
-    #         reply = response.choices[0].message.content
-    #         st.session_state.chat_history.append((user_input, reply))
-    #     except Exception as e:
-    #         st.error(f"Chatbot error: {e}")
-    #         reply = None
-
-    # # Show chat history
-    # for i, (q, a) in enumerate(reversed(st.session_state.chat_history), 1):
-    #     with st.expander(f"Q{i}: {q}"):
-    #         st.markdown(a)
 
 
 st.markdown("---")
