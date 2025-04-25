@@ -455,47 +455,40 @@ plot_chart_with_range(ticker, selected_range)
 tabs = st.tabs(["📈 Income Statement", "📊 Balance Sheet", "📄 SEC Filings", "🤖 AI Commentary","💬 Company Chatbot"])
     
 with tabs[0]:
-	st.subheader("Income Statement (Raw)")
-	with st.spinner("Fetching Income Statement..."):
-		income_df = get_income_statement(ticker)
+    st.subheader("Income Statement (Raw)")
+    with st.spinner("Fetching Income Statement..."):
+        income_df = get_income_statement(ticker)
 
-	if income_df is None or income_df.empty:
-	    st.warning("No income statement data available for this company.")
-	else:
-	    formatted_income = clean_financial_dataframe(income_df, "Income")
-	    formatted_income = add_yoy_change(formatted_income)
-	    # st.dataframe(formatted_income, use_container_width=True)
-	    styled = formatted_income.style.applymap(highlight_growth, subset=["YoY Change"])
-	    st.dataframe(styled, use_container_width=True)
-	    download_button(formatted_income, f"{ticker}_income_statement")
-	    plot_income_statement_trends(income_df, ticker)
+    if income_df is None or income_df.empty:
+        st.warning("No income statement data available for this company.")
+    else:
+        formatted_income = clean_financial_dataframe(income_df, "Income")
+        formatted_income = add_yoy_change(formatted_income)
 
+        styled = formatted_income.style.applymap(highlight_growth, subset=["YoY Change"])
+        st.dataframe(styled, use_container_width=True)
 
+        download_button(formatted_income, f"{ticker}_income_statement")
+        plot_income_statement_trends(income_df, ticker)
+
+        # Sankey Flow
         st.subheader("🔄 Interactive Income Statement Sankey Flow")
-
-        # Prepare income_df directly fetched by your existing function
         df = income_df.copy()
-
-        # Dynamically detect fiscal year columns
         year_cols = [col for col in df.columns if any(char.isdigit() for char in col)]
 
-        # Clean and transpose for ease of use
         df_cleaned = df[year_cols].apply(pd.to_numeric, errors='coerce').fillna(0)
         df_cleaned.index = df_cleaned.index.str.replace('_', ' ').str.title()
 
-        # Build Sankey components
         labels, source, target, value = [], [], [], []
         label_indices = {}
 
-        # Define labels dynamically
         for year in year_cols:
             for item in df_cleaned.index:
                 labels.append(f"{item} ({year})")
 
-        labels = list(dict.fromkeys(labels))  # Ensure unique labels
+        labels = list(dict.fromkeys(labels))
         label_indices = {label: idx for idx, label in enumerate(labels)}
 
-        # Connect items year-over-year
         for i in range(len(year_cols)-1):
             year_current, year_next = year_cols[i], year_cols[i+1]
             for item in df_cleaned.index:
@@ -505,29 +498,18 @@ with tabs[0]:
                 if val_current > 0 and val_next > 0:
                     source_label = f"{item} ({year_current})"
                     target_label = f"{item} ({year_next})"
-                    
+
                     source.append(label_indices[source_label])
                     target.append(label_indices[target_label])
                     value.append(min(val_current, val_next))
 
-        # Create Sankey diagram
         fig = go.Figure(go.Sankey(
-            node=dict(
-                pad=15, thickness=20,
-                line=dict(color="black", width=0.5),
-                label=labels
-            ),
-            link=dict(
-                source=source,
-                target=target,
-                value=value
-            )
+            node=dict(pad=15, thickness=20, line=dict(color="black", width=0.5), label=labels),
+            link=dict(source=source, target=target, value=value)
         ))
-
         fig.update_layout(title_text="📊 Income Statement Flow (Year-over-Year)", font_size=10)
-
-        # Display interactive Sankey chart
         st.plotly_chart(fig, use_container_width=True)
+
 
 with tabs[1]:
 	st.subheader("Balance Sheet (Raw)")
