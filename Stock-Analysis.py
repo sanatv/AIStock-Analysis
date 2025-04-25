@@ -728,11 +728,6 @@ Here is the financial data for {ticker}:
 
 with tabs[4]:
 
-
-
-
-
-
     #st.subheader("💬 Ask Questions About the Company")
     
     
@@ -769,30 +764,30 @@ with tabs[4]:
         st.divider()
 
 
-    user_input = st.text_input("Ask me anything about this company:")
-    if user_input:
-        openai_client = init_openai_client()
+    # user_input = st.text_input("Ask me anything about this company:")
+    # if user_input:
+    #     openai_client = init_openai_client()
 
-        messages = [
-            {"role": "system", "content": f"You are a financial assistant. Use the context below to answer questions:\n\n{company_context}. "},
-            {"role": "user", "content": user_input}
-        ]
+    #     messages = [
+    #         {"role": "system", "content": f"You are a financial assistant. Use the context below to answer questions:\n\n{company_context}. "},
+    #         {"role": "user", "content": user_input}
+    #     ]
 
-        try:
-            response = openai_client.chat.completions.create(
-                model="gpt-4.1-mini",
-                messages=messages
-            )
-            reply = response.choices[0].message.content
-            st.session_state.chat_history.append((user_input, reply))
-        except Exception as e:
-            st.error(f"Chatbot error: {e}")
-            reply = None
+    #     try:
+    #         response = openai_client.chat.completions.create(
+    #             model="gpt-4.1-mini",
+    #             messages=messages
+    #         )
+    #         reply = response.choices[0].message.content
+    #         st.session_state.chat_history.append((user_input, reply))
+    #     except Exception as e:
+    #         st.error(f"Chatbot error: {e}")
+    #         reply = None
 
-    # Show chat history
-    for i, (q, a) in enumerate(reversed(st.session_state.chat_history), 1):
-        with st.expander(f"Q{i}: {q}"):
-            st.markdown(a)
+    # # Show chat history
+    # for i, (q, a) in enumerate(reversed(st.session_state.chat_history), 1):
+    #     with st.expander(f"Q{i}: {q}"):
+    #         st.markdown(a)
 
 
 st.markdown("---")
