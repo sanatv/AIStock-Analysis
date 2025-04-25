@@ -475,7 +475,7 @@ with tabs[0]:
             "Total Revenue",
             "Cost Of Revenue",
             "Gross Profit",
-            "Operating Expenses",
+            "Operating Expense",
             "Research And Development",
             "Selling General And Administration",
             "Operating Income",
@@ -500,7 +500,7 @@ with tabs[0]:
         # Explicit flow structure ensuring visibility
         labels = [
             "Total Revenue", "Cost Of Revenue", "Gross Profit",
-            "Operating Expenses", "R&D", "SG&A",
+            "Operating Expense", "R&D", "SG&A",
             "Operating Income", "Net Income"
         ]
 
@@ -508,9 +508,9 @@ with tabs[0]:
         flow_map = [
             ("Total Revenue", "Cost Of Revenue"),
             ("Total Revenue", "Gross Profit"),
-            ("Gross Profit", "Operating Expenses"),
-            ("Operating Expenses", "R&D"),
-            ("Operating Expenses", "SG&A"),
+            ("Gross Profit", "Operating Expense"),
+            ("Operating Expense", "R&D"),
+            ("Operating Expense", "SG&A"),
             ("Gross Profit", "Operating Income"),
             ("Operating Income", "Net Income")
         ]
@@ -561,12 +561,12 @@ with tabs[0]:
                 value=value,
                 customdata=hovertext,
                 hovertemplate="%{customdata}<extra></extra>",
-                color="rgba(150,150,150,0.3)"
+                color="rgba(150,0,150,0.3)"
             )
         ))
 
         fig.update_layout(
-            title_text=f"📊 Income Flow Breakdown – {latest_year_col[:10]}",
+            title_text=f"📊 Income Flow Breakdown – {latest_year_col[:4]}",
             font=dict(size=13, color="#111"),
             plot_bgcolor="white",
             paper_bgcolor="white"
