@@ -824,7 +824,7 @@ with tabs[4]:
     # Display past conversation
 from streamlit.components.v1 import html
 	
-	st.markdown("### 🗂️ Previous Conversations")
+st.markdown("### 🗂️ Previous Conversations")
 	for i, (q, a) in enumerate(reversed(st.session_state.web_chat_history), 1):
 	    with st.container():
 		# User bubble
