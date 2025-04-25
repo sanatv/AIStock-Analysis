@@ -455,6 +455,7 @@ plot_chart_with_range(ticker, selected_range)
 tabs = st.tabs(["📈 Income Statement", "📊 Balance Sheet", "📄 SEC Filings", "🤖 AI Commentary","💬 Company Chatbot"])
     
 with tabs[0]:
+
     st.subheader("📊 Income Flow (Latest Year)")
 
     # Fetch income statement
@@ -467,11 +468,7 @@ with tabs[0]:
         import plotly.graph_objects as go
 
         # Dynamically detect latest fiscal column
-        latest_year_col = [
-            str(col) for col in income_df.columns
-            if any(char.isdigit() for char in str(col))
-        ][0]
-
+        latest_year_col = [col for col in income_df.columns if any(char.isdigit() for char in col)][0]
 
         # Select and clean key line items
         selected_items = [
@@ -567,6 +564,23 @@ with tabs[0]:
 
 
 
+    st.subheader("Income Statement (Raw)")
+    with st.spinner("Fetching Income Statement..."):
+        income_df = get_income_statement(ticker)
+
+    if income_df is None or income_df.empty:
+        st.warning("No income statement data available for this company.")
+    else:
+        formatted_income = clean_financial_dataframe(income_df, "Income")
+        formatted_income = add_yoy_change(formatted_income)
+
+        styled = formatted_income.style.applymap(highlight_growth, subset=["YoY Change"])
+        st.dataframe(styled, use_container_width=True)
+
+        download_button(formatted_income, f"{ticker}_income_statement")
+        plot_income_statement_trends(income_df, ticker)
+
+        
 
 with tabs[1]:
 	st.subheader("Balance Sheet (Raw)")
