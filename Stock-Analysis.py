@@ -792,7 +792,7 @@ with tabs[4]:
     user_question = st.text_input("🧠 Ask about this company (financials + web):")
 
     if user_question:
-        with st.spinner("GPT-4o thinking with company data + live search..."):
+        with st.spinner("AI thinking with company data + live search..."):
             try:
                 client = init_openai_sdk()
 
@@ -808,7 +808,7 @@ If the data is insufficient, you may use web tools.
 """
 
                 response = client.responses.create(
-                    model="gpt-4.1",
+                    model="gpt-4o",
                     input=full_prompt,
                     tools=[{"type": "web_search"}]
                 )
