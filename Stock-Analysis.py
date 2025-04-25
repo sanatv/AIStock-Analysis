@@ -462,8 +462,10 @@ with tabs[0]:
 
     # Detect latest fiscal column safely
     latest_year_col = [
-        str(col) for col in income_df.columns if any(char.isdigit() for char in str(col))
+        str(col) for col in income_df.columns
+        if any(char.isdigit() for char in str(col))
     ][0]
+
 
     # Selected key financial components
     selected_items = [
