@@ -60,7 +60,7 @@ def init_openai_client():
     if not api_key:
         st.error("🔒 Please configure your OpenAI API key in Streamlit secrets.")
         st.stop()
-    return ChatOpenAI(api_key=api_key, model="gpt-4o", temperature=0)
+    return ChatOpenAI(api_key=api_key, model="gpt-4.1", temperature=0)
 
 search_tool = DuckDuckGoSearchRun()
 
