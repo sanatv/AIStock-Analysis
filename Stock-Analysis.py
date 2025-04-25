@@ -528,6 +528,18 @@ with tabs[0]:
                 hovertext.append(f"{src} → {tgt}<br><b>${val:,.1f}M</b><br>{pct:.2f}% of Revenue")
 
         # Sankey chart
+        # Custom node colors to clearly distinguish sections
+        node_colors = [
+            "#1f77b4",  # Total Revenue - blue
+            "#ff7f0e",  # Cost of Revenue - orange
+            "#2ca02c",  # Gross Profit - green
+            "#9467bd",  # Operating Expenses - purple
+            "#c49c94",  # R&D - beige
+            "#8c564b",  # SG&A - brown
+            "#17becf",  # Operating Income - cyan
+            "#d62728",  # Net Income - red
+        ]
+
         fig = go.Figure(go.Sankey(
             arrangement="snap",
             node=dict(
@@ -535,7 +547,7 @@ with tabs[0]:
                 thickness=20,
                 line=dict(color="rgba(80,80,80,0.6)", width=1),
                 label=labels,
-                color="rgba(0, 82, 204, 0.85)",  # elegant dark blue
+                color=node_colors,
                 hoverlabel=dict(bgcolor="rgba(0,0,0,0.9)", font=dict(color="white"))
             ),
             link=dict(
@@ -544,16 +556,17 @@ with tabs[0]:
                 value=value,
                 customdata=hovertext,
                 hovertemplate="%{customdata}<extra></extra>",
-                color="rgba(100, 160, 255, 0.4)"  # soft blue link
+                color="rgba(0, 0, 0, 0.15)"  # soft black-gray transparent links
             )
         ))
 
         fig.update_layout(
             title_text=f"📊 Income Flow Breakdown – {latest_year_col}",
-            font=dict(size=13, color="black"),
-            plot_bgcolor='rgba(248, 248, 255, 1)',
-            paper_bgcolor='white'
+            font=dict(size=13, color="#111"),
+            plot_bgcolor="white",
+            paper_bgcolor="white"
         )
+
 
         st.plotly_chart(fig, use_container_width=True)
 
