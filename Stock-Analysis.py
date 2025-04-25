@@ -492,6 +492,11 @@ with tabs[0]:
 
         # Convert all values to millions
         df_flow[latest_year_col] = df_flow[latest_year_col] / 1e6
+        # Map item names to labels
+        item_alias = {
+            "Research And Development": "R&D",
+            "Selling General And Administration": "SG&A"
+        }
 
         # Define custom flow structure
         labels = [
@@ -521,11 +526,7 @@ with tabs[0]:
 
         revenue_value = df_flow.loc["Total Revenue", latest_year_col] if "Total Revenue" in df_flow.index else 1
 
-        # Map item names to labels
-        item_alias = {
-            "Research And Development": "R&D",
-            "Selling General And Administration": "SG&A"
-        }
+
 
         df_flow.index = df_flow.index.to_series().replace(item_alias)
 
@@ -538,16 +539,18 @@ with tabs[0]:
                 pct = (val / revenue_value) * 100
                 hovertext.append(f"{src} → {tgt}<br>${val:,.1f}M<br>{pct:.2f}% of Revenue")
 
-        # Sankey plot
         fig = go.Figure(go.Sankey(
             arrangement="snap",
             node=dict(
                 pad=15,
-                thickness=20,
-                line=dict(color="gray", width=0.5),
+                thickness=18,
+                line=dict(color="rgba(50, 50, 50, 0.6)", width=1),
                 label=labels,
-                color="rgba(31, 119, 180, 0.8)",
-                hoverlabel=dict(font=dict(color="white"))
+                color="rgba(0, 102, 204, 0.85)",  # deep rich blue
+                hoverlabel=dict(
+                    font=dict(size=12, color="white"),
+                    bgcolor="rgba(0, 0, 0, 0.85)"
+                )
             ),
             link=dict(
                 source=source,
@@ -555,16 +558,17 @@ with tabs[0]:
                 value=value,
                 customdata=hovertext,
                 hovertemplate="%{customdata}<extra></extra>",
-                color="rgba(100, 100, 200, 0.4)"
+                color="rgba(100, 160, 255, 0.4)"  # soft bluish flow
             )
         ))
 
         fig.update_layout(
             title_text=f"📊 Income Flow – {latest_year_col}",
-            font=dict(size=12, color="black")
+            font=dict(size=13, color="#1a1a1a"),
+            plot_bgcolor='rgba(248, 248, 255, 1)',  # light gray-blue background
+            paper_bgcolor='white'
         )
 
-        st.plotly_chart(fig, use_container_width=True)
 
 
 
