@@ -472,43 +472,59 @@ with tabs[0]:
         plot_income_statement_trends(income_df, ticker)
 
         # Sankey Flow
-        st.subheader("🔄 Interactive Income Statement Sankey Flow")
-        df = income_df.copy()
-        year_cols = [col for col in df.columns if any(char.isdigit() for char in col)]
+        st.subheader("🔄 Income Flow (Latest Year)")
 
-        df_cleaned = df[year_cols].apply(pd.to_numeric, errors='coerce').fillna(0)
-        df_cleaned.index = df_cleaned.index.str.replace('_', ' ').str.title()
+        # Get most recent year column dynamically
+        latest_year_col = [col for col in income_df.columns if any(char.isdigit() for char in col)][0]
 
-        labels, source, target, value = [], [], [], []
-        label_indices = {}
+        # Filter and clean for selected line items
+        selected_items = [
+            "Total Revenue", "Cost Of Revenue",
+            "Gross Profit", "Operating Income", "Net Income"
+        ]
 
-        for year in year_cols:
-            for item in df_cleaned.index:
-                labels.append(f"{item} ({year})")
+        df_flow = income_df[income_df.index.isin(selected_items)].copy()
+        df_flow = df_flow[[latest_year_col]].apply(pd.to_numeric, errors='coerce').fillna(0)
+        df_flow.index = df_flow.index.str.replace("_", " ").str.title()
 
-        labels = list(dict.fromkeys(labels))
-        label_indices = {label: idx for idx, label in enumerate(labels)}
+        # Define flow structure
+        labels = ["Total Revenue", "Cost Of Revenue", "Gross Profit", "Operating Income", "Net Income"]
+        flow_map = [
+            ("Total Revenue", "Cost Of Revenue"),
+            ("Total Revenue", "Gross Profit"),
+            ("Gross Profit", "Operating Income"),
+            ("Operating Income", "Net Income"),
+        ]
 
-        for i in range(len(year_cols)-1):
-            year_current, year_next = year_cols[i], year_cols[i+1]
-            for item in df_cleaned.index:
-                val_current = df_cleaned.at[item, year_current]
-                val_next = df_cleaned.at[item, year_next]
+        source = []
+        target = []
+        value = []
+        hovertext = []
 
-                if val_current > 0 and val_next > 0:
-                    source_label = f"{item} ({year_current})"
-                    target_label = f"{item} ({year_next})"
+        label_to_index = {label: idx for idx, label in enumerate(labels)}
+        revenue_value = df_flow.loc["Total Revenue"][0] if "Total Revenue" in df_flow.index else 1
 
-                    source.append(label_indices[source_label])
-                    target.append(label_indices[target_label])
-                    value.append(min(val_current, val_next))
+        for src, tgt in flow_map:
+            if src in df_flow.index and tgt in df_flow.index:
+                flow_val = min(df_flow.loc[src][0], df_flow.loc[tgt][0])
+                source.append(label_to_index[src])
+                target.append(label_to_index[tgt])
+                value.append(flow_val)
+                pct = (flow_val / revenue_value) * 100
+                hovertext.append(f"{src} → {tgt}<br>{flow_val:,.0f} USD<br>{pct:.2f}% of Revenue")
 
+        # Sankey chart with tooltips
+        import plotly.graph_objects as go
         fig = go.Figure(go.Sankey(
-            node=dict(pad=15, thickness=20, line=dict(color="black", width=0.5), label=labels),
-            link=dict(source=source, target=target, value=value)
-        ))
-        fig.update_layout(title_text="📊 Income Statement Flow (Year-over-Year)", font_size=10)
-        st.plotly_chart(fig, use_container_width=True)
+            node=dict(
+                pad=15, thickness=20,
+                line=dict(color="black", width=0.5),
+                label=labels
+            ),
+            link=dict(
+                source=source,
+                target=target
+
 
 
 with tabs[1]:
