@@ -871,8 +871,8 @@ for idx, (q, a) in enumerate(reversed(st.session_state.web_chat_history), 1):
             # 💬 Smart Follow-Up Suggestions (only after the latest answer)
             if idx == 1:
                 st.markdown("#### 🔥 You might also ask:")
-                for suggestion in generate_follow_up_questions():
-                    if st.button(f"💬 {suggestion}", key=f"suggestion_{suggestion}"):
+		for idx_suggestion, suggestion in enumerate(generate_follow_up_questions()):
+		    if st.button(f"💬 {suggestion}", key=f"suggestion_{idx_suggestion}_{suggestion}"):
                         # Auto-fill the input box with suggestion
                         st.session_state["gpt4o_input"] = suggestion
                         st.experimental_rerun()
