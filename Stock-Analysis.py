@@ -21,14 +21,6 @@ from langchain_community.vectorstores import FAISS
 
 
 
-
-
-
-
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
-
-
 # ------------------------------------------------------------------------------
 # 1. Page config & theming
 # ------------------------------------------------------------------------------
@@ -41,6 +33,11 @@ st.set_page_config(
 # ------------------------------------------------------------------------------
 # 2. Secrets & clients
 # ------------------------------------------------------------------------------
+
+
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
 OPENAI_KEY = st.secrets.get("openai_key")
 OPENAI_ORG = st.secrets.get("openai_org")
 if not OPENAI_KEY:
