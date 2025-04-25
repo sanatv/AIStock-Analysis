@@ -456,120 +456,98 @@ tabs = st.tabs(["📈 Income Statement", "📊 Balance Sheet", "📄 SEC Filings
     
 with tabs[0]:
 
-    st.subheader("📊 Income Flow (Latest Year)")
+    import plotly.graph_objects as go
 
-    # Fetch income statement
-    with st.spinner("Fetching Income Statement..."):
-        income_df = get_income_statement(ticker)
+    st.subheader("🔄 Income Flow (Latest Year)")
 
-    if income_df is None or income_df.empty:
-        st.warning("No income statement data available for this company.")
-    else:
-        import plotly.graph_objects as go
+    # Detect latest fiscal column safely
+    latest_year_col = [
+        str(col) for col in income_df.columns if any(char.isdigit() for char in str(col))
+    ][0]
 
-        # Dynamically detect latest fiscal column
-        latest_year_col = [
-            str(col) for col in income_df.columns
-            if any(char.isdigit() for char in str(col))
-        ][0]
+    # Selected key financial components
+    selected_items = [
+        "Total Revenue", "Cost Of Revenue", "Gross Profit",
+        "Operating Expenses", "Operating Income", "Net Income",
+        "Research And Development", "Selling General And Administration"
+    ]
 
+    # Clean and align
+    df_flow = income_df[income_df.index.isin(selected_items)].copy()
+    df_flow = df_flow[[latest_year_col]].apply(pd.to_numeric, errors='coerce').fillna(0)
+    df_flow.index = df_flow.index.str.replace("_", " ").str.title()
 
-        # Select and clean key line items
-        selected_items = [
-            "Total Revenue",
-            "Cost Of Revenue",
-            "Gross Profit",
-            "Operating Expenses",
-            "Research And Development",
-            "Selling General And Administration",
-            "Operating Income",
-            "Net Income"
-        ]
+    # Alias shorter labels
+    aliases = {
+        "Research And Development": "R&D",
+        "Selling General And Administration": "SG&A"
+    }
+    df_flow.rename(index=aliases, inplace=True)
 
-        df_flow = income_df[income_df.index.isin(selected_items)].copy()
-        df_flow = df_flow[[latest_year_col]].apply(pd.to_numeric, errors='coerce').fillna(0)
-        df_flow.index = df_flow.index.str.replace("_", " ").str.title()
+    # Convert to millions
+    df_flow[latest_year_col] /= 1e6
 
-        # Convert all values to millions
-        df_flow[latest_year_col] = df_flow[latest_year_col] / 1e6
-        # Map item names to labels
-        item_alias = {
-            "Research And Development": "R&D",
-            "Selling General And Administration": "SG&A"
-        }
+    # Final label list (order matters for mapping)
+    labels = [
+        "Total Revenue", "Cost Of Revenue", "Gross Profit",
+        "Operating Expenses", "R&D", "SG&A",
+        "Operating Income", "Net Income"
+    ]
 
-        # Define custom flow structure
-        labels = [
-            "Total Revenue",
-            "Cost Of Revenue",
-            "Gross Profit",
-            "Operating Expenses",
-            "R&D",
-            "SG&A",
-            "Operating Income",
-            "Net Income"
-        ]
+    # Define financial flow (source → target)
+    flow_map = [
+        ("Total Revenue", "Cost Of Revenue"),
+        ("Total Revenue", "Gross Profit"),
+        ("Gross Profit", "Operating Expenses"),
+        ("Operating Expenses", "R&D"),
+        ("Operating Expenses", "SG&A"),
+        ("Gross Profit", "Operating Income"),
+        ("Operating Income", "Net Income")
+    ]
 
-        flow_map = [
-            ("Total Revenue", "Cost Of Revenue"),
-            ("Total Revenue", "Gross Profit"),
-            ("Gross Profit", "Operating Expenses"),
-            ("Operating Expenses", "R&D"),
-            ("Operating Expenses", "SG&A"),
-            ("Gross Profit", "Operating Income"),
-            ("Operating Income", "Net Income")
-        ]
+    # Build link data
+    source, target, value, hovertext = [], [], [], []
+    label_to_index = {label: i for i, label in enumerate(labels)}
+    revenue_value = df_flow.loc["Total Revenue", latest_year_col] or 1
 
-        # Build Sankey structure
-        source, target, value, hovertext = [], [], [], []
-        label_to_index = {label: idx for idx, label in enumerate(labels)}
+    for src, tgt in flow_map:
+        if src in df_flow.index and tgt in df_flow.index:
+            val = min(df_flow.loc[src, latest_year_col], df_flow.loc[tgt, latest_year_col])
+            source.append(label_to_index[src])
+            target.append(label_to_index[tgt])
+            value.append(val)
+            pct = (val / revenue_value) * 100
+            hovertext.append(f"{src} → {tgt}<br><b>${val:,.1f}M</b><br>{pct:.2f}% of Revenue")
 
-        revenue_value = df_flow.loc["Total Revenue", latest_year_col] if "Total Revenue" in df_flow.index else 1
-
-
-
-        df_flow.index = df_flow.index.to_series().replace(item_alias)
-
-        for src, tgt in flow_map:
-            if src in df_flow.index and tgt in df_flow.index:
-                val = min(df_flow.loc[src, latest_year_col], df_flow.loc[tgt, latest_year_col])
-                source.append(label_to_index[src])
-                target.append(label_to_index[tgt])
-                value.append(val)
-                pct = (val / revenue_value) * 100
-                hovertext.append(f"{src} → {tgt}<br>${val:,.1f}M<br>{pct:.2f}% of Revenue")
-
-        fig = go.Figure(go.Sankey(
-            arrangement="snap",
-            node=dict(
-                pad=15,
-                thickness=18,
-                line=dict(color="rgba(50, 50, 50, 0.6)", width=1),
-                label=labels,
-                color="rgba(0, 102, 204, 0.85)",  # deep rich blue
-                hoverlabel=dict(
-                    font=dict(size=12, color="white"),
-                    bgcolor="rgba(0, 0, 0, 0.85)"
-                )
-            ),
-            link=dict(
-                source=source,
-                target=target,
-                value=value,
-                customdata=hovertext,
-                hovertemplate="%{customdata}<extra></extra>",
-                color="rgba(100, 160, 255, 0.4)"  # soft bluish flow
-            )
-        ))
-
-        fig.update_layout(
-            title_text=f"📊 Income Flow – {latest_year_col}",
-            font=dict(size=13, color="#1a1a1a"),
-            plot_bgcolor='rgba(248, 248, 255, 1)',  # light gray-blue background
-            paper_bgcolor='white'
+    # Sankey chart
+    fig = go.Figure(go.Sankey(
+        arrangement="snap",
+        node=dict(
+            pad=15,
+            thickness=20,
+            line=dict(color="rgba(80,80,80,0.6)", width=1),
+            label=labels,
+            color="rgba(0, 82, 204, 0.85)",  # elegant dark blue
+            hoverlabel=dict(bgcolor="rgba(0,0,0,0.9)", font=dict(color="white"))
+        ),
+        link=dict(
+            source=source,
+            target=target,
+            value=value,
+            customdata=hovertext,
+            hovertemplate="%{customdata}<extra></extra>",
+            color="rgba(100, 160, 255, 0.4)"  # soft blue link
         )
+    ))
 
+    fig.update_layout(
+        title_text=f"📊 Income Flow Breakdown – {latest_year_col}",
+        font=dict(size=13, color="black"),
+        plot_bgcolor='rgba(248, 248, 255, 1)',
+        paper_bgcolor='white'
+    )
 
+    st.plotly_chart(fig, use_container_width=True)
 
 
     st.subheader("Income Statement (Raw)")
