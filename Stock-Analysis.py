@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 from openai import OpenAI
 import matplotlib.pyplot as plt
 import requests
+import plotly.graph_objects as go
 
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
@@ -468,7 +469,7 @@ with tabs[0]:
 	    st.dataframe(styled, use_container_width=True)
 	    download_button(formatted_income, f"{ticker}_income_statement")
 	    plot_income_statement_trends(income_df, ticker)
-        import plotly.graph_objects as go
+
 
         st.subheader("🔄 Interactive Income Statement Sankey Flow")
 
