@@ -479,6 +479,7 @@ with tabs[0]:
             "Research And Development",
             "Selling General And Administration",
             "Operating Income",
+            "Tax Provision",
             "Net Income"
         ]
 
@@ -501,7 +502,7 @@ with tabs[0]:
         labels = [
             "Total Revenue", "Cost Of Revenue", "Gross Profit",
             "Operating Expense", "R&D", "SG&A",
-            "Operating Income", "Net Income"
+            "Operating Income","Tax Provision", "Net Income"
         ]
 
         # Define logical Sankey flows clearly
@@ -512,7 +513,8 @@ with tabs[0]:
             ("Operating Expense", "R&D"),
             ("Operating Expense", "SG&A"),
             ("Gross Profit", "Operating Income"),
-            ("Operating Income", "Net Income")
+            ("Operating Income", "Net Income"),
+            ("Operating Income","Tax Provision")
         ]
 
         # Construct Sankey data with error checking
@@ -541,6 +543,7 @@ with tabs[0]:
             "#c49c94",  # R&D - Beige
             "#8c564b",  # SG&A - Brown
             "#17becf",  # Operating Income - Cyan
+            "#18bedf",  # Tax Provision
             "#d62728"   # Net Income - Red
         ]
 
@@ -561,7 +564,7 @@ with tabs[0]:
                 value=value,
                 customdata=hovertext,
                 hovertemplate="%{customdata}<extra></extra>",
-                color="rgba(150,0,150,0.3)"
+                color="rgba(15,0,150,0.3)"
             )
         ))
 
