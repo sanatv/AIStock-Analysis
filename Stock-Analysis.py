@@ -822,7 +822,7 @@ with tabs[4]:
                 reply = None
 
     # Display past conversation
-	from streamlit.components.v1 import html
+from streamlit.components.v1 import html
 	
 	st.markdown("### 🗂️ Previous Conversations")
 	for i, (q, a) in enumerate(reversed(st.session_state.web_chat_history), 1):
