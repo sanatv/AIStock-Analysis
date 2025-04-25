@@ -868,24 +868,27 @@ for idx, (q, a) in enumerate(reversed(st.session_state.web_chat_history), 1):
             </div>
             """, unsafe_allow_html=True)
 
-            # Smart Follow-Up Suggestions (only after latest answer)
-            if idx == 1:
-                st.markdown("#### 🔥 You might also ask:")
-                for idx_suggestion, suggestion in enumerate(generate_follow_up_questions()):
-                    if st.button(f"💬 {suggestion}", key=f"suggestion_{idx_suggestion}_{suggestion}"):
-                        st.session_state["gpt4o_input"] = suggestion
-                        st.experimental_rerun()
+            # Smart Follow-Up Suggestions (only after latest answer
+	# Chat Bubble Layout
+	if idx == 1:
+	    st.markdown("#### 🔥 You might also ask:")
+	    for idx_suggestion, suggestion in enumerate(generate_follow_up_questions()):
+	        if st.button(f"💬 {suggestion}", key=f"chatbubble_suggestion_{idx}_{idx_suggestion}"):
+	            st.session_state["gpt4o_input"] = suggestion
+	            st.experimental_rerun()
+	
 
     else:
         with st.expander(f"Q{idx}: {q}"):
             st.markdown(a)
 
-            if idx == 1:
-                st.markdown("#### 🔥 Suggested Next Questions:")
-                for idx_suggestion, suggestion in enumerate(generate_follow_up_questions()):
-                    if st.button(f"💬 {suggestion}", key=f"expander_suggestion_{idx_suggestion}"):
-                        st.session_state["gpt4o_input"] = suggestion
-                        st.experimental_rerun()
+	# Expander Layout
+	if idx == 1:
+	    st.markdown("#### 🔥 Suggested Next Questions:")
+	    for idx_suggestion, suggestion in enumerate(generate_follow_up_questions()):
+	        if st.button(f"💬 {suggestion}", key=f"expander_suggestion_{idx}_{idx_suggestion}"):
+	            st.session_state["gpt4o_input"] = suggestion
+	            st.experimental_rerun()
 
 
 
