@@ -765,6 +765,11 @@ def init_openai_sdk():
 
 with tabs[4]:
     st.subheader("💬 GPT-4o Assistant (Financial Context + Optional Web Search)")
+    layout_mode = st.radio(
+    "Choose display style:",
+    ("🗨️ Chat Bubbles", "📂 Expandable Q&A"),
+    horizontal=True
+    )
 
     # Toggle for web search
     use_web = st.toggle("🌐 Enable Web Search with GPT-4o", value=True)
@@ -827,26 +832,32 @@ from streamlit.components.v1 import html
 st.markdown("### 🗂️ Previous Conversations")
 
 for i, (q, a) in enumerate(reversed(st.session_state.web_chat_history), 1):
-    with st.container():
-        # User bubble
-        st.markdown(f"""
-        <div style="display: flex; align-items: start; margin-bottom: 10px;">
-            <div style="font-size: 24px; margin-right: 10px;">👤</div>
-            <div style="background-color: #f0f2f6; padding: 10px 15px; border-radius: 12px; max-width: 85%;">
-                <strong>You:</strong><br>{q}
+    if layout_mode == "🗨️ Chat Bubbles":
+        # Bubbles Layout
+        with st.container():
+            # User bubble
+            st.markdown(f"""
+            <div style="display: flex; align-items: start; margin-bottom: 10px;">
+                <div style="font-size: 24px; margin-right: 10px;">👤</div>
+                <div style="background-color: #f0f2f6; padding: 10px 15px; border-radius: 12px; max-width: 85%;">
+                    <strong>You:</strong><br>{q}
+                </div>
             </div>
-        </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
 
-        # GPT bubble
-        st.markdown(f"""
-        <div style="display: flex; align-items: start; margin-bottom: 25px;">
-            <div style="font-size: 24px; margin-right: 10px;">🧠</div>
-            <div style="background-color: #e8f5e9; padding: 10px 15px; border-radius: 12px; max-width: 85%;">
-                <strong>GPT-4o:</strong><br>{a}
+            # GPT bubble
+            st.markdown(f"""
+            <div style="display: flex; align-items: start; margin-bottom: 25px;">
+                <div style="font-size: 24px; margin-right: 10px;">🧠</div>
+                <div style="background-color: #e8f5e9; padding: 10px 15px; border-radius: 12px; max-width: 85%;">
+                    <strong>GPT-4o:</strong><br>{a}
+                </div>
             </div>
-        </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
+    else:
+        # Expanders Layout
+        with st.expander(f"Q{i}: {q}"):
+            st.markdown(a)
 
 
         # Download as PDF
