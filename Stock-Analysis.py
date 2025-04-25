@@ -48,7 +48,7 @@ if not OPENAI_KEY:
 def init_openai_client_ai_commentry() -> OpenAI:
     return OpenAI(api_key=OPENAI_KEY, organization=OPENAI_ORG)
 
-client = init_openai_client_ai_commentry()
+# client = init_openai_client_ai_commentry()
 
 
 @st.cache_resource
@@ -694,8 +694,26 @@ with tabs[2]:
 with tabs[3]:
     st.subheader("🤖 AI Analysis and Recommendations")
 
+    # Prepare context from financial data
+    company_context = f"""
+    Here is the financial data for {ticker}:
+
+    ### Income Statement:
+    {income_df.to_string()}
+
+    ### Balance Sheet:
+    {balance_df.to_string()}
+
+    ### 10-K Summary:
+    {ten_k[:5000]}
+
+    ### 10-Q Summary:
+    {ten_q[:5000]}
+    """
+
     if st.button("🧠 Generate AI Commentary"):
         with st.spinner("Generating commentary with AI..."):
+            client = init_openai_client_ai_commentry()
             commentary = get_chatgpt_commentary(
                 client,
                 income_df.to_string(),
@@ -704,6 +722,7 @@ with tabs[3]:
                 ten_q,
                 ticker
             )
+
             st.markdown(commentary, unsafe_allow_html=True)
 
             st.download_button(
