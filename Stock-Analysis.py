@@ -47,13 +47,13 @@ if not OPENAI_KEY:
     st.stop()
 
 @st.cache_resource
-def init_openai_client() -> OpenAI:
-    return OpenAI(api_key=OPENAI_KEY, organization=OPENAI_ORG)
+# def init_openai_client() -> OpenAI:
+#     return OpenAI(api_key=OPENAI_KEY, organization=OPENAI_ORG)
 
-client = init_openai_client()
+# client = init_openai_client()
 
 
-# Initialize OpenAI Client (cached)
+# # Initialize OpenAI Client (cached)
 @st.cache_resource
 def init_openai_client():
     return ChatOpenAI(model="gpt-4-turbo", temperature=0)
