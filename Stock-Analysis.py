@@ -869,35 +869,33 @@ for idx, (q, a) in enumerate(reversed(st.session_state.web_chat_history), 1):
             """, unsafe_allow_html=True)
 
         # 🔥 Smart Follow-Up Suggestions (only after the latest answer)
-        if idx == 1:
-            st.markdown("#### 🔥 You might also ask:")
-            for idx_suggestion, suggestion in enumerate(generate_follow_up_questions()):
-                if st.button(f"💬 {suggestion}", key=f"chatbubble_suggestion_{idx}_{idx_suggestion}"):
-		client = init_openai_sdk()
-			
-			full_prompt = f"""
-			You are a smart financial assistant. First, try to answer from the structured financial data below. 
-			If not sufficient, use your web search tool (if allowed).
-			
-			==== COMPANY DATA ====
-			{company_context}
-			
-			==== QUESTION ====
-			{suggestion}
-			"""
-			
-			response = client.responses.create(
-			    model="gpt-4o",
-			    input=full_prompt,
-			    tools=[{"type": "web_search"}] if use_web else []
-			)
-			
-			reply = response.output_text
-			st.session_state.web_chat_history.append((suggestion, reply))
-			
-			# Clear input box
-			st.session_state["gpt4o_input"] = ""
-			st.experimental_rerun()
+	if idx == 1:
+	    st.markdown("#### 🔥 You might also ask:")
+	    for idx_suggestion, suggestion in enumerate(generate_follow_up_questions()):
+	        if st.button(f"💬 {suggestion}", key=f"chatbubble_suggestion_{idx}_{idx_suggestion}"):
+	            client = init_openai_sdk()
+	            full_prompt = f"""
+	You are a smart financial assistant. First, try to answer from the structured financial data below. 
+	If not sufficient, use your web search tool (if allowed).
+	
+	==== COMPANY DATA ====
+	{company_context}
+	
+	==== QUESTION ====
+	{suggestion}
+	"""
+	            response = client.responses.create(
+	                model="gpt-4o",
+	                input=full_prompt,
+	                tools=[{"type": "web_search"}] if use_web else []
+	            )
+	            reply = response.output_text
+	            st.session_state.web_chat_history.append((suggestion, reply))
+	
+	            # Clear input box
+	            st.session_state["gpt4o_input"] = ""
+	            st.experimental_rerun()
+
 
 
     else:
