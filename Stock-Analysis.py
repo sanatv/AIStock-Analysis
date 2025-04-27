@@ -873,7 +873,7 @@ for idx, (q, a) in enumerate(reversed(st.session_state.web_chat_history), 1):
             st.markdown("#### 🔥 You might also ask:")
             for idx_suggestion, suggestion in enumerate(generate_follow_up_questions()):
                 if st.button(f"💬 {suggestion}", key=f"chatbubble_suggestion_{idx}_{idx_suggestion}"):
-			client = init_openai_sdk()
+		client = init_openai_sdk()
 			
 			full_prompt = f"""
 			You are a smart financial assistant. First, try to answer from the structured financial data below. 
