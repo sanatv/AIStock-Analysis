@@ -857,7 +857,6 @@ for idx, (q, a) in enumerate(reversed(st.session_state.web_chat_history), 1):
                 </div>
             </div>
             """, unsafe_allow_html=True)
-
             # GPT bubble
             st.markdown(f"""
             <div style="display: flex; align-items: start; margin-bottom: 25px;">
