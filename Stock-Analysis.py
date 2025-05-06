@@ -362,9 +362,9 @@ def download_button(df: pd.DataFrame, filename: str):
 def plot_income_statement_trends(income: pd.DataFrame, ticker: str) -> None:
     METRIC_MAP = {
         "Total Revenue": "Total Revenue",
-        "Cost of Revenue": "CostOfRevenue",
+        "Cost of Revenue": "Cost Of Revenue",
         "Operating Income": "Operating Income",
-        "Basic EPS": "Basic EPS"
+        "Basic EPS": "Basic Eps"
     }
     available = {label: idx for label, idx in METRIC_MAP.items() if idx in income.index}
     if not available:
@@ -619,7 +619,7 @@ with tabs[0]:
                 line=dict(color="rgba(80,80,80,0)", width=1),
                 label=labels,
                 color=node_colors,
-                hoverlabel=dict(bgcolor="rgba(256,256,256,0.8)", font=dict(color="white"))
+                hoverlabel=dict(bgcolor="rgba(80,80,256,0.8)", font=dict(color="white"))
             ),
             link=dict(
                 source=source,
@@ -627,7 +627,7 @@ with tabs[0]:
                 value=value,
                 customdata=hovertext,
                 hovertemplate="%{customdata}<extra></extra>",
-                color="rgba(256,256,10,15)"
+                color="rgba(80,80,10,15)"
             )
         ))
 
