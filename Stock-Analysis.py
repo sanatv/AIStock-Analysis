@@ -619,7 +619,7 @@ with tabs[0]:
                 line=dict(color="rgba(80,80,80,0)", width=1),
                 label=labels,
                 color=node_colors,
-                hoverlabel=dict(bgcolor="rgba(20,0,0,0.8)", font=dict(color="white"))
+                hoverlabel=dict(bgcolor="rgba(0,0,0,0.8)", font=dict(color="white"))
             ),
             link=dict(
                 source=source,
@@ -627,13 +627,13 @@ with tabs[0]:
                 value=value,
                 customdata=hovertext,
                 hovertemplate="%{customdata}<extra></extra>",
-                color="rgba(15,15,10,0.3)"
+                color="rgba(15,15,10,15)"
             )
         ))
 
         fig.update_layout(
             title_text=f"📊 Income Flow Breakdown – {latest_year_col[:4]}",
-            font=dict(size=13, color="#191"),
+            font=dict(size=13, color="#111"),
             plot_bgcolor="white",
             paper_bgcolor="white"
         )
