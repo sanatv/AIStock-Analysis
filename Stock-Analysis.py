@@ -627,13 +627,13 @@ with tabs[0]:
                 value=value,
                 customdata=hovertext,
                 hovertemplate="%{customdata}<extra></extra>",
-                color="rgba(15,2,10,0.3)"
+                color="rgba(15,15,10,0.3)"
             )
         ))
 
         fig.update_layout(
             title_text=f"📊 Income Flow Breakdown – {latest_year_col[:4]}",
-            font=dict(size=13, color="#111"),
+            font=dict(size=13, color="#191"),
             plot_bgcolor="white",
             paper_bgcolor="white"
         )
