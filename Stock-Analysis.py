@@ -627,7 +627,7 @@ with tabs[0]:
                 value=value,
                 customdata=hovertext,
                 hovertemplate="%{customdata}<extra></extra>",
-                color="rgba(80,0,10,15)"
+                color="rgba(135, 206, 250, 1)"
             )
         ))
 
