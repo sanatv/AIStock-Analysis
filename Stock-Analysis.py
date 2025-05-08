@@ -616,7 +616,7 @@ with tabs[0]:
             node=dict(
                 pad=15,
                 thickness=20,
-                line=dict(color="rgba(80,60,0,0)", width=1),
+                line=dict(color="rgba(80,260,0,100)", width=1),
                 label=labels,
                 color=node_colors,
                 hoverlabel=dict(bgcolor="rgba(80,60,256,80)", font=dict(color="white"))
