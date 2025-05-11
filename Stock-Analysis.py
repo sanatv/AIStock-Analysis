@@ -611,33 +611,60 @@ with tabs[0]:
         ]
 
         # Sankey visualization
-        fig = go.Figure(go.Sankey(
-            arrangement="snap",
-            node=dict(
-                pad=15,
-                thickness=20,
-                line=dict(color="rgba(80,80,0,.8)", width=1),
-                label=labels,
-                color=node_colors,
-                hoverlabel=dict(bgcolor="rgba(0,60,76,.80)", font=dict(color="white")),
-		font=dict(color="rgba(80,80,80,.80)")
-            ),
-            link=dict(
-                source=source,
-                target=target,
-                value=value,
-                customdata=hovertext,
-                hovertemplate="%{customdata}<extra></extra>",
-                color="rgba(135, 206, 250, 1)"
-            )
-        ))
+	fig = go.Figure(go.Sankey(
+	    arrangement="snap",
+	    node=dict(
+	        pad=15,
+	        thickness=20,
+	        line=dict(color="gray", width=0.5),
+	        label=labels,
+	        color="rgba(31, 119, 180, 0.8)"
+	    ),
+	    link=dict(
+	        source=source,
+	        target=target,
+	        value=value,
+	        customdata=hovertext,
+	        hovertemplate="%{customdata}<extra></extra>",
+	        color="rgba(100, 100, 200, 0.4)"
+	    )
+	))
+	
+	fig.update_layout(
+	    title_text=f"📊 Income Flow – {latest_year_col}",
+	    font=dict(size=12, color="black")   # <- Safe global font for whole figure
+	)
 
-        fig.update_layout(
-            title_text=f"📊 Income Flow Breakdown – {latest_year_col[:4]}",
-            font=dict(size=13, color="#111"),
-            plot_bgcolor="white",
-            paper_bgcolor="white"
-        )
+
+
+	    
+  #       fig = go.Figure(go.Sankey(
+  #           arrangement="snap",
+  #           node=dict(
+  #               pad=15,
+  #               thickness=20,
+  #               line=dict(color="rgba(80,80,0,.8)", width=1),
+  #               label=labels,
+  #               color=node_colors,
+  #               hoverlabel=dict(bgcolor="rgba(0,60,76,.80)", font=dict(color="white")),
+		# font=dict(color="rgba(80,80,80,.80)")
+  #           ),
+  #           link=dict(
+  #               source=source,
+  #               target=target,
+  #               value=value,
+  #               customdata=hovertext,
+  #               hovertemplate="%{customdata}<extra></extra>",
+  #               color="rgba(135, 206, 250, 1)"
+  #           )
+  #       ))
+
+  #       fig.update_layout(
+  #           title_text=f"📊 Income Flow Breakdown – {latest_year_col[:4]}",
+  #           font=dict(size=13, color="#111"),
+  #           plot_bgcolor="white",
+  #           paper_bgcolor="white"
+  #       )
 
         st.plotly_chart(fig, use_container_width=True)
 
