@@ -655,7 +655,7 @@ with tabs[0]:
                 target=target,
                 value=value,
                 customdata=hovertext,
-                hovertemplate="%{customdata}<extra></extra>"
+                hovertemplate="%{customdata}<extra></extra>",
                 color="rgba(100,100,200,.4)"
             )
         ))
