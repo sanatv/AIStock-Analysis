@@ -620,7 +620,7 @@ with tabs[0]:
                 label=labels,
                 color=node_colors,
                 hoverlabel=dict(bgcolor="rgba(0,60,256,80)", font=dict(color="white")),
-		font=dict(color="black")  
+		font=dict(color="rgba(256,256,256,256)"  
             ),
             link=dict(
                 source=source,
