@@ -645,9 +645,10 @@ with tabs[0]:
                 thickness=20,
                 line=dict(color="rgba(80,80,0,.8)", width=1),
                 label=labels,
-                color=node_colors,
-                hoverlabel=dict(bgcolor="rgba(0,60,76,.80)", font=dict(color="white")),
-		font=dict(color="rgba(80,80,80,.80)")
+                #color=node_colors,
+                color="rgba(31, 119, 180, 0.8)"
+                #hoverlabel=dict(bgcolor="rgba(0,60,76,.80)", font=dict(color="white")),
+		#font=dict(color="rgba(80,80,80,.80)")
             ),
             link=dict(
                 source=source,
@@ -655,7 +656,7 @@ with tabs[0]:
                 value=value,
                 customdata=hovertext,
                 hovertemplate="%{customdata}<extra></extra>"
-                # color="rgba(135, 206, 250, 1)"
+                color="rgba(100,100,200,.4)"
             )
         ))
 
