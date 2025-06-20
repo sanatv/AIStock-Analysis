@@ -46,14 +46,14 @@ if not OPENAI_KEY:
 def init_openai_client_ai_commentry() -> OpenAI:
     return OpenAI(api_key=OPENAI_KEY, organization=OPENAI_ORG)
 
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+# if "chat_history" not in st.session_state:
+#     st.session_state.chat_history = []
 
-OPENAI_KEY = st.secrets.get("openai_key")
-OPENAI_ORG = st.secrets.get("openai_org")
-if not OPENAI_KEY:
-    st.error("🔒 Please configure your OpenAI API key in Streamlit secrets as 'openai_key'.")
-    st.stop()
+# OPENAI_KEY = st.secrets.get("openai_key")
+# OPENAI_ORG = st.secrets.get("openai_org")
+# if not OPENAI_KEY:
+#     st.error("🔒 Please configure your OpenAI API key in Streamlit secrets as 'openai_key'.")
+#     st.stop()
 
 @st.cache_resource
 def init_openai_client_ai_commentry() -> OpenAI:
