@@ -33,7 +33,18 @@ st.set_page_config(
 # ------------------------------------------------------------------------------
 # 2. Secrets & clients
 # ------------------------------------------------------------------------------
+import os
 
+OPENAI_KEY = os.getenv("openai_key")
+OPENAI_ORG = os.getenv("openai_org")
+
+if not OPENAI_KEY:
+    st.error("🔒 Please configure your OpenAI API key as 'openai_key' in Render Environment settings.")
+    st.stop()
+
+@st.cache_resource
+def init_openai_client_ai_commentry() -> OpenAI:
+    return OpenAI(api_key=OPENAI_KEY, organization=OPENAI_ORG)
 
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
